@@ -2,78 +2,122 @@
 
 public class TankMovement : MonoBehaviour
 {
-    public int m_PlayerNumber = 1;         
-    public float m_Speed = 12f;            
-    public float m_TurnSpeed = 180f;       
-    public AudioSource m_MovementAudio;    
-    public AudioClip m_EngineIdling;       
-    public AudioClip m_EngineDriving;      
-    public float m_PitchRange = 0.2f;
+    public int playerNumber = 1;
+    public float speed = 12f;
+    public float turnSpeed = 180f;
+    public AudioSource movementAudio;
+    public AudioClip engineIdling;
+    public AudioClip engineDriving;
+    public float pitchRange = 0.2f;
 
-    /*
-    private string m_MovementAxisName;     
-    private string m_TurnAxisName;         
-    private Rigidbody m_Rigidbody;         
-    private float m_MovementInputValue;    
-    private float m_TurnInputValue;        
-    private float m_OriginalPitch;         
 
+    private string movementAxisName;
+    private string turnAxisName;
+    private Rigidbody rigidbody;
+    private float movementInputValue;
+    private float turnInputValue;
+    private float originalPitch;
+    private ParticleSystem[] particleSystems;
 
     private void Awake()
     {
-        m_Rigidbody = GetComponent<Rigidbody>();
+        rigidbody = GetComponent<Rigidbody>();
+        particleSystems = GetComponentsInChildren<ParticleSystem>();
     }
 
 
-    private void OnEnable ()
+    private void OnEnable()
     {
-        m_Rigidbody.isKinematic = false;
-        m_MovementInputValue = 0f;
-        m_TurnInputValue = 0f;
+        rigidbody.isKinematic = false;
+        movementInputValue = 0f;
+        turnInputValue = 0f;
+
+        for (int i = 0; i < particleSystems.Length; ++i)
+        {
+            particleSystems[i].Play();
+        }
     }
 
 
-    private void OnDisable ()
+    private void OnDisable()
     {
-        m_Rigidbody.isKinematic = true;
+        rigidbody.isKinematic = true;
+
+        for (int i = 0; i < particleSystems.Length; ++i)
+        {
+            particleSystems[i].Stop();
+        }
     }
 
 
     private void Start()
     {
-        m_MovementAxisName = "Vertical" + m_PlayerNumber;
-        m_TurnAxisName = "Horizontal" + m_PlayerNumber;
+        movementAxisName = "Vertical" + playerNumber;
+        turnAxisName = "Horizontal" + playerNumber;
 
-        m_OriginalPitch = m_MovementAudio.pitch;
+        originalPitch = movementAudio.pitch;
     }
-    */
 
+    // Store the player's input and make sure the audio for the engine 
+    // is playing.
     private void Update()
     {
-        // Store the player's input and make sure the audio for the engine is playing.
+        movementInputValue = Input.GetAxis(movementAxisName);
+        turnInputValue = Input.GetAxis(turnAxisName);
+
+        EngineAudio();
     }
 
 
+    // Play the correct audio clip based on whether or not the tank is moving 
+    // and what audio is currently playing.
     private void EngineAudio()
     {
-        // Play the correct audio clip based on whether or not the tank is moving and what audio is currently playing.
+        if ((Mathf.Abs(movementInputValue) < 0.1f) && 
+            (Mathf.Abs(turnInputValue) < 0.1f))
+        {
+            if (movementAudio.clip == engineDriving)
+            {
+                movementAudio.clip = engineIdling;
+                movementAudio.pitch = Random.Range(
+                    originalPitch - pitchRange, 
+                    originalPitch + pitchRange);
+                movementAudio.Play();
+            }
+        }
+        else
+        {
+            if (movementAudio.clip == engineIdling)
+            {
+                movementAudio.clip = engineDriving;
+                movementAudio.pitch = Random.Range(
+                    originalPitch - pitchRange, 
+                    originalPitch + pitchRange);
+                movementAudio.Play();
+            }
+        }
     }
 
-
+    // Move and turn the tank.
     private void FixedUpdate()
     {
-        // Move and turn the tank.
+        Move();
+        Turn();
     }
 
-
+    // Adjust the position of the tank based on the player's input.
     private void Move()
     {
-        // Adjust the position of the tank based on the player's input.
+        Vector3 movement = transform.forward * movementInputValue * speed * 
+            Time.deltaTime;
+        rigidbody.MovePosition(rigidbody.position + movement);
     }
 
-
+    // Adjust the rotation of the tank based on the player's input.
     private void Turn()
     {
-        // Adjust the rotation of the tank based on the player's input.
+        float turn = turnInputValue * turnSpeed * Time.deltaTime;
+        Quaternion turnRotation = Quaternion.Euler(0f, turn, 0f);
+        rigidbody.MoveRotation(rigidbody.rotation * turnRotation);
     }
 }
