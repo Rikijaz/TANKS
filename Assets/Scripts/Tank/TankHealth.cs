@@ -12,7 +12,7 @@ public class TankHealth : MonoBehaviour
 
     private AudioSource explosionAudio;
     private ParticleSystem explosionParticles;
-    private float currentHealth;
+    public float currentHealth;
     private bool dead;
     
     private void Awake()
