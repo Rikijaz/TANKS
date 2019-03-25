@@ -4,63 +4,63 @@ using UnityEngine;
 [Serializable]
 public class TankManager
 {
-    public Color playerColor;            
-    public Transform spawnPoint;         
-    [HideInInspector] public int playerNumber;             
-    [HideInInspector] public string coloredPlayerText;
-    [HideInInspector] public GameObject instance;          
-    [HideInInspector] public int wins;                     
+    public Color m_PlayerColor;            
+    public Transform m_SpawnPoint;         
+    [HideInInspector] public int m_PlayerNumber;             
+    [HideInInspector] public string m_ColoredPlayerText;
+    [HideInInspector] public GameObject m_Instance;          
+    [HideInInspector] public int m_Wins;                     
 
 
-    private TankMovement movement;       
-    private TankShooting shooting;
-    private GameObject canvasGameObject;
+    private TankMovement m_Movement;       
+    private TankShooting m_Shooting;
+    private GameObject m_CanvasGameObject;
 
 
     public void Setup()
     {
-        movement = instance.GetComponent<TankMovement>();
-        shooting = instance.GetComponent<TankShooting>();
-        canvasGameObject = instance.GetComponentInChildren<Canvas>().gameObject;
+        m_Movement = m_Instance.GetComponent<TankMovement>();
+        m_Shooting = m_Instance.GetComponent<TankShooting>();
+        m_CanvasGameObject = m_Instance.GetComponentInChildren<Canvas>().gameObject;
 
-        movement.playerNumber = playerNumber;
-        shooting.playerNumber = playerNumber;
+        m_Movement.m_PlayerNumber = m_PlayerNumber;
+        m_Shooting.m_PlayerNumber = m_PlayerNumber;
 
-        coloredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(playerColor) + ">PLAYER " + playerNumber + "</color>";
+        m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(m_PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
 
-        MeshRenderer[] renderers = instance.GetComponentsInChildren<MeshRenderer>();
+        MeshRenderer[] renderers = m_Instance.GetComponentsInChildren<MeshRenderer>();
 
         for (int i = 0; i < renderers.Length; i++)
         {
-            renderers[i].material.color = playerColor;
+            renderers[i].material.color = m_PlayerColor;
         }
     }
 
 
     public void DisableControl()
     {
-        movement.enabled = false;
-        shooting.enabled = false;
+        m_Movement.enabled = false;
+        m_Shooting.enabled = false;
 
-        canvasGameObject.SetActive(false);
+        m_CanvasGameObject.SetActive(false);
     }
 
 
     public void EnableControl()
     {
-        movement.enabled = true;
-        shooting.enabled = true;
+        m_Movement.enabled = true;
+        m_Shooting.enabled = true;
 
-        canvasGameObject.SetActive(true);
+        m_CanvasGameObject.SetActive(true);
     }
 
 
     public void Reset()
     {
-        instance.transform.position = spawnPoint.position;
-        instance.transform.rotation = spawnPoint.rotation;
+        m_Instance.transform.position = m_SpawnPoint.position;
+        m_Instance.transform.rotation = m_SpawnPoint.rotation;
 
-        instance.SetActive(false);
-        instance.SetActive(true);
+        m_Instance.SetActive(false);
+        m_Instance.SetActive(true);
     }
 }

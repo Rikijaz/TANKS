@@ -2,18 +2,18 @@
 
 public class ShellExplosion : MonoBehaviour
 {
-    public LayerMask tankMask;
-    public ParticleSystem explosionParticles;       
-    public AudioSource explosionAudio;              
-    public float maxDamage = 100f;                  
-    public float explosionForce = 1000f;            
-    public float maxLifeTime = 2f;                  
-    public float explosionRadius = 5f;              
+    public LayerMask m_TankMask;
+    public ParticleSystem m_ExplosionParticles;       
+    public AudioSource m_ExplosionAudio;              
+    public float m_MaxDamage = 100f;                  
+    public float m_ExplosionForce = 1000f;            
+    public float m_MaxLifeTime = 2f;                  
+    public float m_ExplosionRadius = 5f;              
 
 
     private void Start()
     {
-        Destroy(gameObject, maxLifeTime);
+        Destroy(gameObject, m_MaxLifeTime);
     }
 
 

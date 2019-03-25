@@ -3,32 +3,32 @@ using UnityEngine.UI;
 
 public class TankHealth : MonoBehaviour
 {
-    public float startingHealth = 100f;          
-    public Slider slider;                        
-    public Image fillImage;                      
-    public Color fullHealthColor = Color.green;  
-    public Color zeroHealthColor = Color.red;    
-    public GameObject explosionPrefab;
+    public float m_StartingHealth = 100f;          
+    public Slider m_Slider;                        
+    public Image m_FillImage;                      
+    public Color m_FullHealthColor = Color.green;  
+    public Color m_ZeroHealthColor = Color.red;    
+    public GameObject m_ExplosionPrefab;
     
     /*
-    private AudioSource explosionAudio;          
-    private ParticleSystem explosionParticles;   
-    private float currentHealth;  
+    private AudioSource m_ExplosionAudio;          
+    private ParticleSystem m_ExplosionParticles;   
+    private float m_CurrentHealth;  
     private bool m_Dead;            
 
 
     private void Awake()
     {
-        explosionParticles = Instantiate(explosionPrefab).GetComponent<ParticleSystem>();
-        explosionAudio = explosionParticles.GetComponent<AudioSource>();
+        m_ExplosionParticles = Instantiate(m_ExplosionPrefab).GetComponent<ParticleSystem>();
+        m_ExplosionAudio = m_ExplosionParticles.GetComponent<AudioSource>();
 
-        explosionParticles.gameObject.SetActive(false);
+        m_ExplosionParticles.gameObject.SetActive(false);
     }
 
 
     private void OnEnable()
     {
-        currentHealth = startingHealth;
+        m_CurrentHealth = m_StartingHealth;
         m_Dead = false;
 
         SetHealthUI();
