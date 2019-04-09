@@ -3,16 +3,22 @@ using UnityEngine.UI;
 
 public class TankHealth : MonoBehaviour
 {
-    public float startingHealth = 100f;          
-    public Slider slider;                        
-    public Image fillImage;                      
-    public Color fullHealthColor = Color.green;  
-    public Color zeroHealthColor = Color.red;    
-    public GameObject explosionPrefab;
+    [SerializeField] Slider slider;
+    [SerializeField] Image fillImage;                      
+    [SerializeField] Color fullHealthColor = Color.green;
+    [SerializeField] Color zeroHealthColor = Color.red;
+    [SerializeField] GameObject explosionPrefab;
+
+    public float startingHealth { get; set; }
+    public float currentHealth { get; private set; }
+
+    public float cachedHealth;
+
+    public static readonly float initialHealth = 100f;
 
     private AudioSource explosionAudio;
     private ParticleSystem explosionParticles;
-    public float currentHealth;
+    
     private bool dead;
     
     private void Awake()
@@ -22,14 +28,24 @@ public class TankHealth : MonoBehaviour
         explosionAudio = explosionParticles.GetComponent<AudioSource>();
 
         explosionParticles.gameObject.SetActive(false);
+
+        startingHealth = initialHealth;
     }
 
     private void OnEnable()
     {
         currentHealth = startingHealth;
+        slider.maxValue = currentHealth;
+
         dead = false;
 
         SetHealthUI();
+    }
+
+    public void SetBossHealthHUD(Slider slider, Image fillImage)
+    {
+        this.slider = slider;
+        this.fillImage = fillImage;
     }
 
     // Adjust the tank's current health, update the UI based on the new health 

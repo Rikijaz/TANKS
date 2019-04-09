@@ -13,20 +13,17 @@ public class TankShooting : MonoBehaviour
     public float minLaunchForce = 15f; 
     public float maxLaunchForce = 30f; 
     public float maxChargeTime = 0.75f;
-
+    public float currentLaunchForce { get; private set; }
 
     private string fireButton;
-    private float currentLaunchForce;
     private float chargeSpeed;
     private bool fired;
-
-
+    
     private void OnEnable()
     {
         currentLaunchForce = minLaunchForce;
         aimSlider.value = minLaunchForce;
     }
-
 
     private void Start()
     {
@@ -39,25 +36,19 @@ public class TankShooting : MonoBehaviour
     // Track the current state of the fire button and make decisions based on the current launch force.
     private void Update()
     {
-        aimSlider.value = minLaunchForce;
+        UpdateUI();
 
         if ((currentLaunchForce >= maxLaunchForce) && (!fired))
-        {
-            currentLaunchForce = maxLaunchForce;
+        {          
             Fire();
         }
         else if (Input.GetButtonDown(fireButton))
         {
-            fired = false;
-            currentLaunchForce = minLaunchForce;
-
-            shootingAudio.clip = chargingClip;
-            shootingAudio.Play();
+            PrepareToFire();
         }
         else if (Input.GetButton(fireButton) && !fired)
         {
-            currentLaunchForce += chargeSpeed * Time.deltaTime;
-            aimSlider.value = currentLaunchForce;
+            ChargeMissle();
         }
         else if (Input.GetButtonUp(fireButton) && !fired)
         {
@@ -65,9 +56,34 @@ public class TankShooting : MonoBehaviour
         }
     }
 
-    // Instantiate and launch the shell.
-    private void Fire()
+    public void UpdateUI()
     {
+        aimSlider.value = minLaunchForce;
+    }
+
+    public void PrepareToFire()
+    {
+        fired = false;
+        currentLaunchForce = minLaunchForce;
+
+        shootingAudio.clip = chargingClip;
+        shootingAudio.Play();
+    }
+
+    public void ChargeMissle()
+    {
+        currentLaunchForce += chargeSpeed * Time.deltaTime;
+        aimSlider.value = currentLaunchForce;
+    }
+
+    // Instantiate and launch the shell.
+    public void Fire()
+    {
+        currentLaunchForce = Mathf.Clamp(
+            currentLaunchForce, 
+            minLaunchForce, 
+            maxLaunchForce);
+
         fired = true;
 
         Rigidbody shellInstance = Instantiate(

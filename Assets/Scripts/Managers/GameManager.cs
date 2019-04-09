@@ -5,21 +5,31 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public int numRoundsToWin = 3;        
-    public float startDelay = 3f;         
-    public float endDelay = 3f;           
-    public CameraControl cameraControl;   
-    public Text messageText;              
-    public GameObject tankPrefab;         
-    public TankManager[] tanks;           
+    private class TankType
+    {
+        public static readonly int player = 0;
+        public static readonly int AI = 1;
+    }
 
+    [SerializeField] CameraControl cameraControl;
+    [SerializeField] Text messageText;
+    [SerializeField] Text bossText;
+    [SerializeField] Slider bossTankHealthSlider;
+    [SerializeField] Image bossTankHealthFillImage;
+    [SerializeField] GameObject[] tankPrefab;
+    [SerializeField] TankManager[] tanks;
 
+    private int numRoundsToWin = 6;
+    private float startDelay = 3f;
+    private float endDelay = 3f;
     private int roundNumber;              
     private WaitForSeconds startWait;     
     private WaitForSeconds endWait;
     private TankManager roundWinner;
     private TankManager gameWinner;
-    
+
+
+
     private void Start()
     {
         startWait = new WaitForSeconds(startDelay);
@@ -33,16 +43,24 @@ public class GameManager : MonoBehaviour
 
     private void SpawnAllTanks()
     {
-        for (int i = 0; i < tanks.Length; i++)
-        {
-            tanks[i].instance =
+        tanks[TankType.player].instance =
+            Instantiate(
+                tankPrefab[TankType.player],
+                tanks[TankType.player].spawnPoint.position,
+                tanks[TankType.player].spawnPoint.rotation) as GameObject;
+        tanks[TankType.player].playerNumber = 1;
+        tanks[TankType.player].SetupPlayer();
+
+        tanks[TankType.AI].instance =
                 Instantiate(
-                    tankPrefab, 
-                    tanks[i].spawnPoint.position, 
-                    tanks[i].spawnPoint.rotation) as GameObject;
-            tanks[i].playerNumber = i + 1;
-            tanks[i].Setup();
-        }
+                    tankPrefab[TankType.AI],
+                    tanks[TankType.AI].spawnPoint.position,
+                    tanks[TankType.AI].spawnPoint.rotation) as GameObject;
+        tanks[TankType.AI].playerNumber = 2;
+        tanks[TankType.AI].SetupBoss(
+            tanks[TankType.player].instance, 
+            bossTankHealthSlider, 
+            bossTankHealthFillImage);
     }
 
     private void SetCameraTargets()
@@ -83,6 +101,10 @@ public class GameManager : MonoBehaviour
         roundNumber++;
         messageText.text = "ROUND " + roundNumber;
 
+        bossText.text = string.Format(
+            "TANK BOSS (LVL {0}) ", 
+            (tanks[TankType.player].wins + 1));
+
         yield return startWait;
     }
 
@@ -109,6 +131,11 @@ public class GameManager : MonoBehaviour
         if (roundWinner != null)
         {
             roundWinner.wins++;
+
+            if (roundWinner.playerNumber == TankType.AI)
+            {
+                tanks[TankType.AI].LevelUpAI();
+            }
         }
 
         gameWinner = GetGameWinner();
