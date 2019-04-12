@@ -2,45 +2,107 @@
 
 public class AIStats
 {
+    readonly private struct InitialStats
+    {
+        public const float Speed = 10f;
+        public const float TurnSpeed = 180f;
+
+        public const float Health = 100f;
+        public const float CriticalHealth = 55f;
+        public const float HealthRegeneration = 5f;
+        public const float StunDuration = 1.10f;
+
+        public const float MissleMissMargin = 3f;
+        public const float MissleCooldownDuration = 0.65f;
+
+        public const float ScanSpeed = 60f;
+        public const float ScanDegrees = 180f;
+
+        public const float AttackRange = 12f;
+        public const float SightRange = 60f;
+        public const float AlertRadius = 25f;
+
+        public const float CoverQuality = -0.50f;
+    }
+
+    readonly private struct StatMultipliers
+    {
+        public const float Speed = 0.18f;
+        public const float TurnSpeed = 0.20f;
+
+        public const float Health = 0.25f;
+        public const float CriticalHealth = 0.25f;
+        public const float HealthRegeneration = 0.25f;
+        public const float StunDuration = 0.35f;
+
+        public const float MissleMissMargin = 0.25f;
+        public const float MissleCooldownDuration = 0.20f;
+
+        public const float ScanSpeed = 0.20f;
+        public const float ScanDegrees = 0.25f;
+
+        public const float AttackRange = 0.25f;
+        public const float SightRange = 0.20f;
+        public const float AlertRadius = 0.25f;
+
+        public const float CoverQuality = 0.05f;
+    }
+
+    readonly private struct StatLimits
+    {
+        public const float ScanDegrees = 360f;
+        public const float AttackRange = 25f;
+        public const float CoverQuality = -0.75f;
+    }
+
+    // Movement
     public float Speed { get; private set; }
     public float TurnSpeed { get; private set; }
 
+    // Health
     public float Health { get; private set; }
     public float CriticalHealth { get; private set; }
+    public float HealthRegeneration { get; private set; }
+    public const float HealRadius = 15f;
+    public float StunDuration { get; private set; }
 
+    // Missle
     public float MissleMissMargin { get; private set; }
     public float MissleCooldownDuration { get; private set; }
-    public static readonly Vector3 MissleLocalPosition = new Vector3(0f, 1.7f, 1.35f);
-    public static readonly float MissleColliderRadius = 0.15f;
 
+    // Scan
     public float ScanDegrees { get; private set; }
     public float ScanSpeed { get; private set; }
 
+    // Range
+    public float AlertRadius { get; private set; }
     public float AttackRange { get; private set; }
     public float SightRange { get; private set; }
-    public float AlertRadius { get; private set; }
 
-    public float StunDuration { get; private set; }
+    // Cover
+    public float CoverQuality { get; private set; }
 
     public AIStats()
     {
-        Speed = 10f;
-        TurnSpeed = 180f;
+        Speed = InitialStats.Speed;
+        TurnSpeed = InitialStats.TurnSpeed;
 
-        Health = 100f;
-        CriticalHealth = 20f;
+        Health = InitialStats.Health;
+        CriticalHealth = InitialStats.CriticalHealth;
+        HealthRegeneration = InitialStats.HealthRegeneration;
+        StunDuration = InitialStats.StunDuration;
 
-        MissleMissMargin = 0.175f;
-        MissleCooldownDuration = 0.65f;
+        MissleMissMargin = InitialStats.MissleMissMargin;
+        MissleCooldownDuration = InitialStats.MissleCooldownDuration;
 
-        ScanSpeed = 60f;
-        ScanDegrees = 180f;
+        ScanSpeed = InitialStats.ScanSpeed;
+        ScanDegrees = InitialStats.ScanDegrees;
 
-        AttackRange = 12f;
-        SightRange = 60f;
-        AlertRadius = 25f;
+        AttackRange = InitialStats.AttackRange;
+        SightRange = InitialStats.SightRange;
+        AlertRadius = InitialStats.AlertRadius;
 
-        StunDuration = 1.10f;
+        CoverQuality = InitialStats.CoverQuality;
     }
 
     /// <summary>
@@ -48,34 +110,34 @@ public class AIStats
     /// </summary>
     public void LevelUp()
     {
-        Speed += Speed * 0.18f;
-        TurnSpeed += TurnSpeed * 0.20f;
+        Speed += Speed * StatMultipliers.Speed;
+        TurnSpeed += TurnSpeed * StatMultipliers.TurnSpeed;
 
-        Health += Health * 0.25f;
-        CriticalHealth -= 5f;
-        CriticalHealth = Mathf.Clamp(
-            CriticalHealth,
-            0,
-            CriticalHealth);
+        Health += Health * StatMultipliers.Health;
+        CriticalHealth = Health * StatMultipliers.CriticalHealth;
+        HealthRegeneration += StatMultipliers.HealthRegeneration;
+        StunDuration -= StunDuration * StatMultipliers.StunDuration;
+        StunDuration = Mathf.Clamp(StunDuration, 0f, StunDuration);
 
-        MissleMissMargin -= MissleMissMargin * 0.25f;
-        MissleMissMargin = Mathf.Clamp(MissleMissMargin, 0, MissleMissMargin);
-        MissleCooldownDuration -= MissleCooldownDuration * 0.20f;
+        MissleMissMargin -= MissleMissMargin * StatMultipliers.MissleMissMargin;
+        MissleMissMargin = Mathf.Clamp(MissleMissMargin, 0f, MissleMissMargin);
+        MissleCooldownDuration -= 
+            MissleCooldownDuration * StatMultipliers.MissleCooldownDuration;
         MissleCooldownDuration = Mathf.Clamp(
             MissleCooldownDuration, 
             0, 
             MissleCooldownDuration);
 
-        ScanSpeed += ScanSpeed * 0.20f;
-        ScanDegrees += ScanDegrees * 0.25f;
-        ScanDegrees = Mathf.Clamp(ScanDegrees, ScanDegrees, 360f);
+        ScanSpeed += ScanSpeed * StatMultipliers.ScanSpeed;
+        ScanDegrees += ScanDegrees * StatMultipliers.ScanDegrees;
+        ScanDegrees = Mathf.Clamp(ScanDegrees, ScanDegrees, StatLimits.ScanDegrees);
 
-        AttackRange += AttackRange * 0.25f;
-        AttackRange = Mathf.Clamp(AttackRange, AttackRange, 25f);
-        SightRange += SightRange * 0.20f;
-        AlertRadius += AlertRadius * 0.25f;
+        AttackRange += AttackRange * StatMultipliers.AttackRange;
+        AttackRange = Mathf.Clamp(AttackRange, AttackRange, StatLimits.AttackRange);
+        SightRange += SightRange * StatMultipliers.SightRange;
+        AlertRadius += AlertRadius * StatMultipliers.AlertRadius;
 
-        StunDuration -= StunDuration * 0.25f;
-        StunDuration = Mathf.Clamp(StunDuration, 0, StunDuration);
+        CoverQuality -= StatMultipliers.CoverQuality;
+        CoverQuality = Mathf.Clamp(CoverQuality, StatLimits.CoverQuality, CoverQuality);
     }
 }

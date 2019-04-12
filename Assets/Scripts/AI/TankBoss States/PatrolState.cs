@@ -20,7 +20,8 @@ public class PatrolState : AIState
     /// </summary>
     public override void OnEnter()
     {
-        SetBool("shouldPatrol", false);
+        SetBool(TransitionKey.shouldPatrol, false);
+
         navMeshAgent.isStopped = false;
     }
 
@@ -40,9 +41,9 @@ public class PatrolState : AIState
     {
         if (!IsHit())
         {
-            if (DistanceToPlayer() <= AIStateData.AIStats.AlertRadius)
+            if (IsPlayerInRadius(AIStateData.AIStats.AlertRadius))
             {
-                SetBool("shouldPursue", true);
+                SetBool(TransitionKey.shouldPursue, true);
             }
             else
             {
@@ -57,14 +58,10 @@ public class PatrolState : AIState
     /// </summary>
     private void Patrol()
     {
-        float distanceToPatrolPoint = Vector3.Distance(
-            patrolPoints[currentPatrolPoint].position,
-            AIStateData.AI.transform.position);
-
-        if (distanceToPatrolPoint < 1f)
+        if (ShouldStop(patrolPoints[currentPatrolPoint].position))
         {
             currentPatrolPoint = (currentPatrolPoint + 1) % patrolPoints.Length;
-            SetBool("shouldScan", true);
+            SetBool(TransitionKey.shouldScan, true);
         }
         else
         {

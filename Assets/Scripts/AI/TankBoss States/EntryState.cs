@@ -1,4 +1,6 @@
-﻿public class EntryState : AIState
+﻿using UnityEngine;
+
+public class EntryState : AIState
 {
     protected override string DefaultName { get { return "EntryState"; } }
 
@@ -7,9 +9,15 @@
         SetStats();
     }
 
-    public override void OnEnter() { }
+    public override void OnEnter()
+    {
+        // empty
+    }
 
-    public override void OnExit() { }
+    public override void OnExit()
+    {
+        // empty
+    }
 
     /// <summary>
     /// Set AI stats accordingly
@@ -17,7 +25,7 @@
     public override void Update()
     {
         SetStats();
-        SetBool("shouldPatrol", true);
+        SetBool(TransitionKey.shouldPatrol, true);
     }
 
     /// <summary>
@@ -27,9 +35,8 @@
     /// </summary>
     public void SetStats()
     {
-        AIHealth.cachedHealth = AIHealth.startingHealth;
-
-        AIHealth.startingHealth = AIStateData.AIStats.Health;
+        AIHealth.CachedHealth = AIHealth.StartingHealth;
+        AIHealth.StartingHealth = AIStateData.AIStats.Health;
         
         navMeshAgent.speed = AIStateData.AIStats.Speed;
         navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;

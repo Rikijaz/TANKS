@@ -4,38 +4,26 @@ using UnityEngine.AI;
 public abstract class AIState : BGC.StateMachine.State
 {
     protected AIStateData AIStateData;
-
     protected NavMeshAgent navMeshAgent;
-
     protected TankHealth AIHealth;
-
-    private Rigidbody AIRigidbody;
+    protected Rigidbody AIRigidbody;
 
     protected AIState(AIStateData AIStateData)
     {
         this.AIStateData = AIStateData;
-
         navMeshAgent = AIStateData.AI.GetComponent<NavMeshAgent>();
-
         navMeshAgent.speed = AIStateData.AIStats.Speed;
         navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;
-
         AIHealth = AIStateData.AI.GetComponent<TankHealth>();
-
         AIRigidbody = AIStateData.AI.GetComponent<Rigidbody>();
     }
 
-    public override void Update()
-    {
-
-    }
-
     /// <summary>
-    /// Determine whether the player is in sight of the Tank Boss
+    /// Determine whether the player is in sight of the AI
     /// </summary>
     protected bool IsPlayerInSight()
     {
-        bool playerSpotted;
+        bool playerSpotted = false;
 
         RaycastHit playerHit;
 
@@ -55,16 +43,16 @@ public abstract class AIState : BGC.StateMachine.State
     /// </summary>
     protected bool IsHit()
     {
-        if (AIHealth.currentHealth != AIHealth.cachedHealth)
+        bool isHit = false;
+
+        if (AIHealth.CurrentHealth < AIHealth.CachedHealth)
         {
-            AIHealth.cachedHealth = AIHealth.currentHealth;
-            SetBool("shouldBeStunned", true);
-            return true;
+            AIHealth.CachedHealth = AIHealth.CurrentHealth;
+            SetBool(TransitionKey.shouldBeStunned, true);
+            isHit = true;
         }
-        else
-        {
-            return false;
-        }
+
+        return isHit;
     }
 
     /// <summary>
@@ -84,5 +72,19 @@ public abstract class AIState : BGC.StateMachine.State
         return Vector3.Distance(
             AIStateData.player.transform.position,
             AIStateData.AI.transform.position);
+    }
+
+    protected bool IsPlayerInRadius(float radius)
+    {
+        return (DistanceToPlayer() <= radius);
+    }
+
+    protected bool ShouldStop(Vector3 destination)
+    {
+        float distanceToDestination = Vector3.Distance(
+            destination, 
+            AIStateData.AI.transform.position);
+
+        return (distanceToDestination <= navMeshAgent.stoppingDistance);
     }
 }

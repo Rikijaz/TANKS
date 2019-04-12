@@ -11,7 +11,7 @@ public class ScanState : AIState
 
     public ScanState(AIStateData AIStateData) : base(AIStateData)
     {
-
+        // empty
     }
 
     /// <summary>
@@ -19,16 +19,18 @@ public class ScanState : AIState
     /// </summary>
     public override void OnEnter()
     {
-        SetBool("shouldScan", false);
+        SetBool(TransitionKey.shouldScan, false);
 
         ResetRigidBodyPhysics();
-
         degreesRotated = 0f;
         hasTurnLeft = false;
         hasTurnRight = false;
     }
 
-    public override void OnExit() { }
+    public override void OnExit()
+    {
+        // empty
+    }
 
     /// <summary>
     /// If hit by missle, enter stunned state. Else, scan for the player
@@ -49,59 +51,52 @@ public class ScanState : AIState
     {
         if (IsPlayerInSight())
         {
-            SetBool("shouldPursue", true);
+            SetBool(TransitionKey.shouldPursue, true);
         }
         else
         {
             if (!hasTurnLeft)
             {
                 degreeToRotate = AIStateData.AIStats.ScanDegrees / 2;
-                TurnLeft();
+                hasTurnLeft = Turn(degreeToRotate);
             }
             else if (!hasTurnRight)
             {
                 degreeToRotate = -(AIStateData.AIStats.ScanDegrees / 2);
-                TurnRight();
+                hasTurnRight = Turn(degreeToRotate);
             }
             else
             {
-                SetBool("shouldPatrol", true);
+                SetBool(TransitionKey.shouldPatrol, true);
             }
         }
 
     }
 
     /// <summary>
-    /// Turn left X degrees
+    /// Turn left or right to X degree
     /// </summary>
-    private void TurnLeft()
+    private bool Turn(float degreeToRotate)
     {
-        if (degreesRotated < degreeToRotate)
-        {
-            float turn = AIStateData.AIStats.ScanSpeed * Time.deltaTime;
-            AIStateData.AI.transform.Rotate(0f, turn, 0f);
-            degreesRotated += turn;
-        }
-        else
-        {
-            hasTurnLeft = true;
-        }
-    }
+        bool hasTurned = false;
+        float turn = Mathf.Sign(degreeToRotate) * 
+            AIStateData.AIStats.ScanSpeed * Time.deltaTime;
 
-    /// <summary>
-    /// Turn right 2X degrees.
-    /// </summary>
-    private void TurnRight()
-    {
-        if (degreesRotated > degreeToRotate)
+        if (degreeToRotate >= 0)
         {
-            float turn = (-AIStateData.AIStats.ScanSpeed) * Time.deltaTime;
-            AIStateData.AI.transform.Rotate(0f, turn, 0f);
-            degreesRotated += turn;
+            hasTurned = (degreesRotated >= degreeToRotate);
         }
         else
         {
-            hasTurnRight = true;
+            hasTurned = (degreesRotated <= degreeToRotate);
         }
+
+        if (!hasTurned)
+        {
+            AIStateData.AI.transform.Rotate(0f, turn, 0f);
+            degreesRotated += turn;
+        }
+
+        return hasTurned;
     }
 }

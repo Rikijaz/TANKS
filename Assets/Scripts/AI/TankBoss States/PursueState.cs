@@ -1,10 +1,12 @@
-﻿public class PursueState : AIState
+﻿using UnityEngine;
+
+public class PursueState : AIState
 {
     protected override string DefaultName { get { return "PursueState"; } }
 
     public PursueState(AIStateData AIStateData) : base(AIStateData)
     {
-
+        //empty
     }
 
     /// <summary>
@@ -12,7 +14,8 @@
     /// </summary>
     public override void OnEnter()
     {
-        SetBool("shouldPursue", false);
+        SetBool(TransitionKey.shouldPursue, false);
+
         navMeshAgent.isStopped = false;
     }
 
@@ -37,17 +40,40 @@
 
     /// <summary>
     /// If the player is within attack range and is in sight, attack the player.
-    /// Else, continue pursuing the player.
+    /// Else, if close to the player, face the player. Otherwise, continue 
+    /// pursuing the player.
     /// </summary>
     private void Pursue()
     {
-        if ((DistanceToPlayer() <= AIStateData.AIStats.AttackRange) && IsPlayerInSight())
+        if (IsPlayerInRadius(AIStateData.AIStats.AttackRange) && IsPlayerInSight())
         {
-            SetBool("shouldAttack", true);
+            SetBool(TransitionKey.shouldAttack, true);
         }
         else
         {
-            navMeshAgent.destination = AIStateData.player.transform.position;
+            if (ShouldStop(AIStateData.player.transform.position))
+            {
+                FacePlayer();
+            }
+            else
+            {
+                navMeshAgent.destination = AIStateData.player.transform.position;
+            }
         }
+    }
+
+    /// <summary>
+    /// Rotate to face the player
+    /// </summary>
+    private void FacePlayer()
+    {
+        Quaternion rotation = Quaternion.LookRotation(
+            AIStateData.player.transform.position - AIStateData.AI.transform.position);
+        float turn = AIStateData.AIStats.TurnSpeed * Time.deltaTime;
+
+        AIStateData.AI.transform.rotation = Quaternion.Slerp(
+            AIStateData.AI.transform.rotation,
+            rotation,
+            turn);
     }
 }

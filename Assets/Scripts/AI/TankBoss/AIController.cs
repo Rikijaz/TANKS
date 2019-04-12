@@ -33,7 +33,7 @@ public class AIController : MonoBehaviour
 
     private BGC.StateMachine.StateMachine stateMachine;
 
-    void Awake()
+    private void Awake()
     {
         AIRigidbody = GetComponent<Rigidbody>();
 
@@ -81,12 +81,19 @@ public class AIController : MonoBehaviour
             stateMachine.GetBool,
             stateMachine.SetBool);
 
-        //FleeState fleeState = new FleeState(AIStateData);
-        //fleeState.SetStateMachineFunctions(
-        //    stateMachine.ActivateTrigger,
-        //    stateMachine.GetTrigger,
-        //    stateMachine.GetBool,
-        //    stateMachine.SetBool);
+        FleeState fleeState = new FleeState(AIStateData);
+        fleeState.SetStateMachineFunctions(
+            stateMachine.ActivateTrigger,
+            stateMachine.GetTrigger,
+            stateMachine.GetBool,
+            stateMachine.SetBool);
+
+        HealState healState = new HealState(AIStateData);
+        healState.SetStateMachineFunctions(
+            stateMachine.ActivateTrigger,
+            stateMachine.GetTrigger,
+            stateMachine.GetBool,
+            stateMachine.SetBool);
 
         stateMachine.AddEntryState(entryState);
         stateMachine.AddState(patrolState);
@@ -94,38 +101,44 @@ public class AIController : MonoBehaviour
         stateMachine.AddState(pursueState);
         stateMachine.AddState(attackState);
         stateMachine.AddState(stunnedState);
-        //stateMachine.AddState(fleeState);
+        stateMachine.AddState(fleeState);
+        stateMachine.AddState(healState);
 
-        stateMachine.AddBool("shouldPatrol", false);
-        stateMachine.AddBool("shouldScan", false);
-        stateMachine.AddBool("shouldPursue", false);
-        stateMachine.AddBool("shouldAttack", false);
-        stateMachine.AddBool("shouldBeStunned", false);
-        //stateMachine.AddBool("shouldFlee", false);
+        stateMachine.AddBool(TransitionKey.shouldPatrol, false);
+        stateMachine.AddBool(TransitionKey.shouldScan, false);
+        stateMachine.AddBool(TransitionKey.shouldPursue, false);
+        stateMachine.AddBool(TransitionKey.shouldAttack, false);
+        stateMachine.AddBool(TransitionKey.shouldBeStunned, false);
+        stateMachine.AddBool(TransitionKey.shouldFlee, false);
+        stateMachine.AddBool(TransitionKey.shouldHeal, false);
 
         BGC.StateMachine.BoolCondition shouldPatrol =
-            new BGC.StateMachine.BoolCondition("shouldPatrol", true);
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldPatrol, true);
         stateMachine.AddAnyStateTransition(patrolState, shouldPatrol);
 
         BGC.StateMachine.BoolCondition shouldScan =
-            new BGC.StateMachine.BoolCondition("shouldScan", true);
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldScan, true);
         stateMachine.AddAnyStateTransition(scanState, shouldScan);
 
         BGC.StateMachine.BoolCondition shouldPursue =
-            new BGC.StateMachine.BoolCondition("shouldPursue", true);
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldPursue, true);
         stateMachine.AddAnyStateTransition(pursueState, shouldPursue);
 
         BGC.StateMachine.BoolCondition shouldAttack =
-            new BGC.StateMachine.BoolCondition("shouldAttack", true);
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldAttack, true);
         stateMachine.AddAnyStateTransition(attackState, shouldAttack);
 
         BGC.StateMachine.BoolCondition shouldBeStunned =
-            new BGC.StateMachine.BoolCondition("shouldBeStunned", true);
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldBeStunned, true);
         stateMachine.AddAnyStateTransition(stunnedState, shouldBeStunned);
 
-        //BGC.StateMachine.BoolCondition shouldFlee =
-        //    new BGC.StateMachine.BoolCondition("shouldFlee", true);
-        //stateMachine.AddTransition(stunnedState, fleeState, shouldFlee);
+        BGC.StateMachine.BoolCondition shouldFlee =
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldFlee, true);
+        stateMachine.AddAnyStateTransition(fleeState, shouldFlee);
+
+        BGC.StateMachine.BoolCondition shouldHeal =
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldHeal, true);
+        stateMachine.AddTransition(fleeState, healState, shouldHeal);
     }
 
     /// <summary>
@@ -133,7 +146,7 @@ public class AIController : MonoBehaviour
     /// </summary>
     private void OnEnable()
     {
-        AIRigidbody.isKinematic = false;
+        AIRigidbody.isKinematic = true;
         stateMachine.Start();
     }
 
@@ -173,11 +186,6 @@ public class AIController : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-
-        }
-
         stateMachine.Update();
     }
 }

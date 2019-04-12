@@ -100,7 +100,6 @@ public class TankManager
             AIController.enabled = true;
         }
         
-        
         shooting.enabled = true;
 
         canvasGameObject.SetActive(true);

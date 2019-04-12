@@ -8,7 +8,7 @@ public class StunnedState : AIState
 
     public StunnedState(AIStateData AIStateData) : base(AIStateData)
     {
-
+        //empty
     }
 
     /// <summary>
@@ -16,14 +16,17 @@ public class StunnedState : AIState
     /// </summary>
     public override void OnEnter()
     {
-        SetBool("shouldBeStunned", false);
+        SetBool(TransitionKey.shouldBeStunned, false);
 
+        AIRigidbody.isKinematic = false;
         navMeshAgent.isStopped = true;
-
         stunnedTimer = 0f;
     }
 
-    public override void OnExit() { }
+    public override void OnExit()
+    {
+        AIRigidbody.isKinematic = true;
+    }
 
     public override void Update()
     {
@@ -42,16 +45,14 @@ public class StunnedState : AIState
         {
             ResetRigidBodyPhysics();
 
-            SetBool("shouldPursue", true);
-
-            //if (AIHealth.cachedHealth < AIStateData.AIStats.CriticalHealth)
-            //{
-            //    SetBool("shouldFlee", true);
-            //}
-            //else
-            //{
-            //    SetBool("shouldPursue", true);
-            //}
+            if (AIHealth.CachedHealth < AIStateData.AIStats.CriticalHealth)
+            {
+                SetBool(TransitionKey.shouldFlee, true);
+            }
+            else
+            {
+                SetBool(TransitionKey.shouldPursue, true);
+            }
         }
     }
 }

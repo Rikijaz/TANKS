@@ -5,21 +5,21 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    private class TankType
+    readonly private struct TankType
     {
-        public static readonly int player = 0;
-        public static readonly int AI = 1;
+        public const int player = 0;
+        public const int AI = 1;
     }
 
-    [SerializeField] CameraControl cameraControl;
-    [SerializeField] Text messageText;
-    [SerializeField] Text bossText;
-    [SerializeField] Slider bossTankHealthSlider;
-    [SerializeField] Image bossTankHealthFillImage;
-    [SerializeField] GameObject[] tankPrefab;
-    [SerializeField] TankManager[] tanks;
+    [SerializeField] private CameraControl cameraControl;
+    [SerializeField] private Text messageText;
+    [SerializeField] private Text bossText;
+    [SerializeField] private Slider bossTankHealthSlider;
+    [SerializeField] private Image bossTankHealthFillImage;
+    [SerializeField] private GameObject[] tankPrefab;
+    [SerializeField] private TankManager[] tanks;
 
-    private int numRoundsToWin = 6;
+    private int numRoundsToWin = 10;
     private float startDelay = 3f;
     private float endDelay = 3f;
     private int roundNumber;              
@@ -27,8 +27,7 @@ public class GameManager : MonoBehaviour
     private WaitForSeconds endWait;
     private TankManager roundWinner;
     private TankManager gameWinner;
-
-
+    private const string bossLevelText = "TANK BOSS (LVL {0}) ";
 
     private void Start()
     {
@@ -102,7 +101,7 @@ public class GameManager : MonoBehaviour
         messageText.text = "ROUND " + roundNumber;
 
         bossText.text = string.Format(
-            "TANK BOSS (LVL {0}) ", 
+            bossLevelText, 
             (tanks[TankType.player].wins + 1));
 
         yield return startWait;

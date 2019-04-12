@@ -30,6 +30,8 @@ public class ShellExplosion : MonoBehaviour
 
             if (targetRigidbody)
             {
+                targetRigidbody.isKinematic = false;
+
                 targetRigidbody.AddExplosionForce(
                     explosionForce, 
                     transform.position, 

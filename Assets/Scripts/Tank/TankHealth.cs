@@ -3,18 +3,17 @@ using UnityEngine.UI;
 
 public class TankHealth : MonoBehaviour
 {
-    [SerializeField] Slider slider;
-    [SerializeField] Image fillImage;                      
-    [SerializeField] Color fullHealthColor = Color.green;
-    [SerializeField] Color zeroHealthColor = Color.red;
-    [SerializeField] GameObject explosionPrefab;
+    [SerializeField] private Slider slider;
+    [SerializeField] private Image fillImage;                      
+    [SerializeField] private Color fullHealthColor = Color.green;
+    [SerializeField] private Color zeroHealthColor = Color.red;
+    [SerializeField] private GameObject explosionPrefab;
 
-    public float startingHealth { get; set; }
-    public float currentHealth { get; private set; }
+    public float StartingHealth { get; set; }
+    public float CurrentHealth { get; private set; }
+    public float CachedHealth { get; set; }
 
-    public float cachedHealth;
-
-    public static readonly float initialHealth = 100f;
+    public const float InitialHealth = 100f;
 
     private AudioSource explosionAudio;
     private ParticleSystem explosionParticles;
@@ -29,13 +28,13 @@ public class TankHealth : MonoBehaviour
 
         explosionParticles.gameObject.SetActive(false);
 
-        startingHealth = initialHealth;
+        StartingHealth = InitialHealth;
     }
 
     private void OnEnable()
     {
-        currentHealth = startingHealth;
-        slider.maxValue = currentHealth;
+        CurrentHealth = StartingHealth;
+        slider.maxValue = CurrentHealth;
 
         dead = false;
 
@@ -48,14 +47,21 @@ public class TankHealth : MonoBehaviour
         this.fillImage = fillImage;
     }
 
+    public void Heal(float amount)
+    {
+        CurrentHealth += amount;
+        CurrentHealth = Mathf.Clamp(CurrentHealth, CurrentHealth, StartingHealth);
+        SetHealthUI();
+    }
+
     // Adjust the tank's current health, update the UI based on the new health 
     // and check whether or not the tank is dead.
     public void TakeDamage(float amount)
     {
-        currentHealth -= amount;
+        CurrentHealth -= amount;
         SetHealthUI();
 
-        if (currentHealth <= 0f && !dead)
+        if (CurrentHealth <= 0f && !dead)
         {
             OnDeath();
         }
@@ -64,11 +70,11 @@ public class TankHealth : MonoBehaviour
     // Adjust the value and colour of the slider.
     private void SetHealthUI()
     {
-        slider.value = currentHealth;
+        slider.value = CurrentHealth;
         fillImage.color = Color.Lerp(
             zeroHealthColor, 
-            fullHealthColor, 
-            currentHealth / startingHealth);
+            fullHealthColor,
+            CurrentHealth / StartingHealth);
     }
 
     // Play the effects for the death of the tank and deactivate it.
