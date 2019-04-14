@@ -10,7 +10,7 @@ public class AIStats
         public const float Health = 100f;
         public const float CriticalHealth = 55f;
         public const float HealthRegeneration = 5f;
-        public const float StunDuration = 1.10f;
+        public const float StunDuration = 0.85f;
 
         public const float MissleMissMargin = 3f;
         public const float MissleCooldownDuration = 0.65f;
@@ -22,7 +22,9 @@ public class AIStats
         public const float SightRange = 60f;
         public const float AlertRadius = 25f;
 
+        public const float DodgeDistance = 5f;
         public const float CoverQuality = -0.50f;
+        public const float MissleAvoidanceRadius = 8.5f;
     }
 
     readonly private struct StatMultipliers
@@ -45,7 +47,9 @@ public class AIStats
         public const float SightRange = 0.20f;
         public const float AlertRadius = 0.25f;
 
+        public const float DodgeDistance = 0.10f;
         public const float CoverQuality = 0.05f;
+        public const float MissleAvoidanceRadius = 0.1f;
     }
 
     readonly private struct StatLimits
@@ -53,6 +57,7 @@ public class AIStats
         public const float ScanDegrees = 360f;
         public const float AttackRange = 25f;
         public const float CoverQuality = -0.75f;
+        public const float MissleAvoidanceRadius = 5f;
     }
 
     // Movement
@@ -79,8 +84,10 @@ public class AIStats
     public float AttackRange { get; private set; }
     public float SightRange { get; private set; }
 
-    // Cover
+    // Defense
+    public float DodgeDistance { get; private set; }
     public float CoverQuality { get; private set; }
+    public float MissleAvoidanceRadius { get; private set; }
 
     public AIStats()
     {
@@ -102,7 +109,9 @@ public class AIStats
         SightRange = InitialStats.SightRange;
         AlertRadius = InitialStats.AlertRadius;
 
+        DodgeDistance = InitialStats.DodgeDistance;
         CoverQuality = InitialStats.CoverQuality;
+        MissleAvoidanceRadius = InitialStats.MissleAvoidanceRadius;
     }
 
     /// <summary>
@@ -137,7 +146,16 @@ public class AIStats
         SightRange += SightRange * StatMultipliers.SightRange;
         AlertRadius += AlertRadius * StatMultipliers.AlertRadius;
 
+        DodgeDistance -= StatMultipliers.DodgeDistance;
+        DodgeDistance = Mathf.Clamp(DodgeDistance, 0f, DodgeDistance);
+
         CoverQuality -= StatMultipliers.CoverQuality;
         CoverQuality = Mathf.Clamp(CoverQuality, StatLimits.CoverQuality, CoverQuality);
+
+        MissleAvoidanceRadius -= StatMultipliers.MissleAvoidanceRadius;
+        MissleAvoidanceRadius = Mathf.Clamp(
+            MissleAvoidanceRadius, 
+            StatLimits.MissleAvoidanceRadius,
+            MissleAvoidanceRadius);
     }
 }

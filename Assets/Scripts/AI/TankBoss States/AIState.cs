@@ -7,6 +7,8 @@ public abstract class AIState : BGC.StateMachine.State
     protected NavMeshAgent navMeshAgent;
     protected TankHealth AIHealth;
     protected Rigidbody AIRigidbody;
+    protected TankShooting AIShooting;
+    protected TankShooting playerShooting;
 
     protected AIState(AIStateData AIStateData)
     {
@@ -16,6 +18,8 @@ public abstract class AIState : BGC.StateMachine.State
         navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;
         AIHealth = AIStateData.AI.GetComponent<TankHealth>();
         AIRigidbody = AIStateData.AI.GetComponent<Rigidbody>();
+        AIShooting = AIStateData.AI.GetComponent<TankShooting>();
+        playerShooting = AIStateData.player.GetComponent<TankShooting>();
     }
 
     /// <summary>
@@ -47,8 +51,9 @@ public abstract class AIState : BGC.StateMachine.State
 
         if (AIHealth.CurrentHealth < AIHealth.CachedHealth)
         {
-            AIHealth.CachedHealth = AIHealth.CurrentHealth;
             SetBool(TransitionKey.shouldBeStunned, true);
+
+            AIHealth.CachedHealth = AIHealth.CurrentHealth;
             isHit = true;
         }
 
@@ -56,7 +61,34 @@ public abstract class AIState : BGC.StateMachine.State
     }
 
     /// <summary>
-    /// Set rigidbody velocity and angular velocity to zero
+    /// Determine if there are nearby missles to dodge. If true, enter dodge
+    /// state
+    /// </summary>
+    protected bool ShouldDodge()
+    {
+        bool missleInRadius = false;
+
+        for (var i = 0; i < playerShooting.missleDataCache.Count && !missleInRadius; ++i)
+        {
+            float distanceToMissleDestination = Vector3.Distance(
+                AIStateData.AI.transform.position,
+                playerShooting.missleDataCache[i].destination);
+
+            if (AIStateData.AIStats.MissleAvoidanceRadius >= distanceToMissleDestination)
+            {
+                SetBool(TransitionKey.shouldDodge, true);
+
+                missleInRadius = true;
+            }
+        }
+
+        return missleInRadius;
+    }
+
+    /// <summary>
+    /// Set rigidbody velocity and angular velocity to zero. Used to ensure
+    /// smooth NavMesh navigation and prevent undefined behavior when the 
+    /// Rigidbody and NavMesh components try to move the AI at the same
     /// </summary>
     protected void ResetRigidBodyPhysics()
     {
@@ -64,9 +96,6 @@ public abstract class AIState : BGC.StateMachine.State
         AIRigidbody.angularVelocity = Vector3.zero;
     }
 
-    /// <summary>
-    /// Get distance to player
-    /// </summary>
     protected float DistanceToPlayer()
     {
         return Vector3.Distance(
@@ -79,7 +108,11 @@ public abstract class AIState : BGC.StateMachine.State
         return (DistanceToPlayer() <= radius);
     }
 
-    protected bool ShouldStop(Vector3 destination)
+    /// <summary>
+    /// If the AI is within the stopping distance to the destination, return
+    /// true
+    /// </summary>
+    protected bool HasArrived(Vector3 destination)
     {
         float distanceToDestination = Vector3.Distance(
             destination, 

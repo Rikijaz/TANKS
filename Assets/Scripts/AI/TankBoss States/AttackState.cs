@@ -4,41 +4,37 @@ public class AttackState : AIState
 {
     protected override string DefaultName { get { return "AttackState"; } }
 
-    private TankShooting shooting;
     private TankMovement playerMovement;
 
     private bool isCooledDown;
     private bool isPreparedToFire;
     private bool isMissleCharged;
     private bool hasFired; 
-
     private float missleCooldownTimer;
 
     private static readonly Vector3 missleLocalPosition = new Vector3(0f, 1.7f, 1.35f);
     private const float missleColliderRadius = 0.15f;
+    private const float groundLevel = 0f;
 
     public AttackState(AIStateData AIStateData) : base(AIStateData)
     { 
-        shooting = AIStateData.AI.GetComponent<TankShooting>();
         playerMovement = AIStateData.player.GetComponent<TankMovement>();
 
         isCooledDown = false;
         isPreparedToFire = false;
         isMissleCharged = false;
         hasFired = false;
-
         missleCooldownTimer = AIStateData.AIStats.MissleCooldownDuration;
     }
 
     /// <summary>
-    /// Halt position and rotation 
+    /// Reset rigidbody physics
     /// </summary>
     public override void OnEnter()
     {
         SetBool(TransitionKey.shouldAttack, false);
 
         hasFired = false;
-
         ResetRigidBodyPhysics();
     }
 
@@ -52,12 +48,13 @@ public class AttackState : AIState
     }
 
     /// <summary>
-    /// If hit by missle, enter stunned state. Else, face the player then attack 
+    /// If the AI is hit by missle, enter stunned state. If there are missles to be 
+    /// dodged, then enter dodge state. Else, face the player then attack 
     /// the player. If the player is within attack range and is in sight, then 
     /// attack again. Else, pursue the player.
     /// </summary>
     public override void Update() {
-        if (!IsHit())
+        if (!IsHit() && !ShouldDodge())
         {
             if (!hasFired)
             {
@@ -83,7 +80,7 @@ public class AttackState : AIState
     {
         Vector3 futurePosition = CalculateFuturePosition();
         futurePosition += Random.insideUnitSphere * AIStateData.AIStats.MissleMissMargin;
-        futurePosition.y = 0f;
+        futurePosition.y = groundLevel;
 
         Vector3 displacement = futurePosition - AIStateData.AI.transform.position;
 
@@ -115,22 +112,22 @@ public class AttackState : AIState
         {
             if (!isPreparedToFire)
             {
-                shooting.PrepareToFire();
+                AIShooting.PrepareToFire();
                 isPreparedToFire = true;
             }
             else if (!isMissleCharged)
             {
-                shooting.ChargeMissle();
+                AIShooting.ChargeMissle();
 
-                if ((shooting.currentLaunchForce >= CalculateMissleMagnitude()) 
-                    || IsPlayerInRadius(AIStateData.AIStats.AttackRange))
+                if ((AIShooting.currentLaunchForce >= CalculateMissleMagnitude()) 
+                    || !IsPlayerInRadius(AIStateData.AIStats.AttackRange))
                 {
                     isMissleCharged = true;
                 }
             }
             else
             {
-                shooting.Fire();
+                AIShooting.Fire();
                 missleCooldownTimer = 0f;
                 isCooledDown = false;
                 isPreparedToFire = false;
@@ -165,8 +162,9 @@ public class AttackState : AIState
     /// <summary>
     /// Given the player's current position and velocity, and the current velocity 
     /// of the charging missle, calculate the position where the player and missle
-    /// will intersect. If the player is not moving or the missle is too slow to
-    /// reach the player, then return the player's current position. Else, calculate
+    /// will intersect using the Law of Sine. If the player is not moving or the 
+    /// missle is too slow to reach the player, then return the player's current 
+    /// position. Else, calculate
     /// </summary>
     private Vector3 CalculateFuturePosition()
     {
@@ -178,7 +176,7 @@ public class AttackState : AIState
 
         float angleA = Vector3.Angle(-vectorC, vectorB) * Mathf.Deg2Rad;
 
-        float sideA = shooting.currentLaunchForce * Time.deltaTime;
+        float sideA = AIShooting.currentLaunchForce * Time.deltaTime;
         float sideB = vectorB.magnitude;
 
         float sinReciprocalA = Mathf.Sin(angleA) / sideA;

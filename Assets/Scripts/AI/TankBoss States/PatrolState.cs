@@ -26,7 +26,7 @@ public class PatrolState : AIState
     }
 
     /// <summary>
-    /// Stop NavMeshAgent.
+    /// Stop NavMeshAgent
     /// </summary>
     public override void OnExit()
     {
@@ -53,12 +53,12 @@ public class PatrolState : AIState
     }
 
     /// <summary>
-    /// If the distance to the current waypoint is than 1 unit, then go to next
-    /// waypoint. Else, continue to the current waypoint.
+    /// If the AI has arrived at the current waypoint, set the next one and 
+    /// enter scan state. Else, continue to the current waypoint
     /// </summary>
     private void Patrol()
     {
-        if (ShouldStop(patrolPoints[currentPatrolPoint].position))
+        if (HasArrived(patrolPoints[currentPatrolPoint].position))
         {
             currentPatrolPoint = (currentPatrolPoint + 1) % patrolPoints.Length;
             SetBool(TransitionKey.shouldScan, true);

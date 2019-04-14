@@ -7,4 +7,5 @@
     public const string shouldBeStunned = "shouldBeStunned";
     public const string shouldFlee = "shouldFlee";
     public const string shouldHeal = "shouldHeal";
+    public const string shouldDodge = "shouldDodge";
 }

@@ -95,6 +95,14 @@ public class AIController : MonoBehaviour
             stateMachine.GetBool,
             stateMachine.SetBool);
 
+        DodgeState dodgeState = new DodgeState(AIStateData);
+        dodgeState.SetStateMachineFunctions(
+            stateMachine.ActivateTrigger,
+            stateMachine.GetTrigger,
+            stateMachine.GetBool,
+            stateMachine.SetBool);
+
+        
         stateMachine.AddEntryState(entryState);
         stateMachine.AddState(patrolState);
         stateMachine.AddState(scanState);
@@ -103,6 +111,7 @@ public class AIController : MonoBehaviour
         stateMachine.AddState(stunnedState);
         stateMachine.AddState(fleeState);
         stateMachine.AddState(healState);
+        stateMachine.AddState(dodgeState);
 
         stateMachine.AddBool(TransitionKey.shouldPatrol, false);
         stateMachine.AddBool(TransitionKey.shouldScan, false);
@@ -111,6 +120,7 @@ public class AIController : MonoBehaviour
         stateMachine.AddBool(TransitionKey.shouldBeStunned, false);
         stateMachine.AddBool(TransitionKey.shouldFlee, false);
         stateMachine.AddBool(TransitionKey.shouldHeal, false);
+        stateMachine.AddBool(TransitionKey.shouldDodge, false);
 
         BGC.StateMachine.BoolCondition shouldPatrol =
             new BGC.StateMachine.BoolCondition(TransitionKey.shouldPatrol, true);
@@ -139,6 +149,10 @@ public class AIController : MonoBehaviour
         BGC.StateMachine.BoolCondition shouldHeal =
             new BGC.StateMachine.BoolCondition(TransitionKey.shouldHeal, true);
         stateMachine.AddTransition(fleeState, healState, shouldHeal);
+
+        BGC.StateMachine.BoolCondition shouldDodge =
+            new BGC.StateMachine.BoolCondition(TransitionKey.shouldDodge, true);
+        stateMachine.AddAnyStateTransition(dodgeState, shouldDodge);
     }
 
     /// <summary>
@@ -182,7 +196,7 @@ public class AIController : MonoBehaviour
     }
 
     /// <summary>
-    /// Update stateMachine states
+    /// Update the current stateMachine state
     /// </summary>
     private void Update()
     {

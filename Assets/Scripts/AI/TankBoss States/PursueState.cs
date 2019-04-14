@@ -10,12 +10,13 @@ public class PursueState : AIState
     }
 
     /// <summary>
-    /// Resume navMeshAgent
+    /// Resume navMeshAgent and reset rigidbody physics
     /// </summary>
     public override void OnEnter()
     {
         SetBool(TransitionKey.shouldPursue, false);
 
+        ResetRigidBodyPhysics();
         navMeshAgent.isStopped = false;
     }
 
@@ -28,11 +29,12 @@ public class PursueState : AIState
     }
 
     /// <summary>
-    /// If hit by missle, enter stunned state. Else, pursue the player
+    /// If the AI is hit by missle, enter stunned state. If there are missles to be 
+    /// dodged, then enter dodge state. Else, pursue the player
     /// </summary>
     public override void Update()
     {
-        if (!IsHit())
+        if (!IsHit() && !ShouldDodge())
         {
             Pursue();
         }
@@ -51,7 +53,7 @@ public class PursueState : AIState
         }
         else
         {
-            if (ShouldStop(AIStateData.player.transform.position))
+            if (HasArrived(AIStateData.player.transform.position))
             {
                 FacePlayer();
             }

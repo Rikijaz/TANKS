@@ -9,13 +9,15 @@ public class ScanState : AIState
     private bool hasTurnLeft;
     private bool hasTurnRight;
 
+    private const int rangeDivider = 2;
+
     public ScanState(AIStateData AIStateData) : base(AIStateData)
     {
         // empty
     }
 
     /// <summary>
-    /// Set scan settings and halt position and rotation
+    /// Set scan settings and reset rigidbody physics
     /// </summary>
     public override void OnEnter()
     {
@@ -44,8 +46,8 @@ public class ScanState : AIState
     }
 
     /// <summary>
-    /// If the player is in sight, pursue the player. Else, turn X degrees left
-    /// then 2X degrees right, then continue patrolling.
+    /// If the player is in sight, pursue the player. Else, turn to X degrees 
+    /// then to -X degrees, then continue patrolling.
     /// </summary>
     private void Scan()
     {
@@ -57,12 +59,12 @@ public class ScanState : AIState
         {
             if (!hasTurnLeft)
             {
-                degreeToRotate = AIStateData.AIStats.ScanDegrees / 2;
+                degreeToRotate = AIStateData.AIStats.ScanDegrees / rangeDivider;
                 hasTurnLeft = Turn(degreeToRotate);
             }
             else if (!hasTurnRight)
             {
-                degreeToRotate = -(AIStateData.AIStats.ScanDegrees / 2);
+                degreeToRotate = -(AIStateData.AIStats.ScanDegrees / rangeDivider);
                 hasTurnRight = Turn(degreeToRotate);
             }
             else

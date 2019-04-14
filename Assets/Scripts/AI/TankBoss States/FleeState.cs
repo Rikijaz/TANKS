@@ -8,20 +8,10 @@ public class FleeState : AIState
 
     private const float fleeRadius = 40f;
     private const float fleeSearchRange = 14f;
-    private const float playerAvoidanceRadius = 3.5f;
+    private const float playerAvoidanceRadius = 5f;
     private const float coverSearchRadius = 5f;
     private const float sampleCoverPositionRange = 4f;
-
-    private static readonly Vector3[] sampleCoverPositions = new Vector3[]
-    {
-        Vector3.forward * sampleCoverPositionRange,
-        (Vector3.forward + Vector3.left) * sampleCoverPositionRange,
-        Vector3.left * sampleCoverPositionRange,
-        (Vector3.forward + Vector3.right)  * sampleCoverPositionRange,
-        Vector3.right * sampleCoverPositionRange,
-    };
-
-    private bool isFleeing;
+    private const int numOfSampleCoverPositions = 8;
 
     public FleeState(AIStateData AIStateData) : base(AIStateData)
     {
@@ -29,17 +19,23 @@ public class FleeState : AIState
     }
 
     /// <summary>
-    /// Resume navMeshAgent
+    /// Resume navMeshAgent and get flee position and set to destination if possible
     /// </summary>
     public override void OnEnter()
     {
         SetBool(TransitionKey.shouldFlee, false);
 
         navMeshAgent.isStopped = false;
+        Vector3 fleePosition = Vector3.zero;
+
+        if (GetFleePosition(ref fleePosition))
+        {
+            navMeshAgent.SetDestination(fleePosition);
+        }
     }
 
     /// <summary>
-    /// Stop navMeshAgent and reset stunnedTimer
+    /// Stop navMeshAgent
     /// </summary>
     public override void OnExit()
     {
@@ -47,7 +43,7 @@ public class FleeState : AIState
     }
 
     /// <summary>
-    /// If hit by missle, enter stunned state. Else, flee.
+    /// If the AI is hit by a missle, enter stunned state. Else, flee.
     /// </summary>
     public override void Update()
     {
@@ -58,81 +54,80 @@ public class FleeState : AIState
     }
 
     /// <summary>
-    /// Attempt to flee. If arrived at safe location, player is not in the HealRadius
-    /// and needs healing, enter heal state. Else, keep moving to safe location.
-    /// If there are no safe locations and the player is in the HealRadius, fight
-    /// back
+    /// If the AI is at the destination and the player is outside the HealRadius,
+    /// then enter heal state. 
+    /// If the AI is at the destination and the player is inside the HealRadius,
+    /// then set new flee destination.
+    /// If the AI is not at the destination and the AI cannot flee, then
+    /// enter pursue state.
     /// </summary>
     private void Flee()
     {
         Vector3 fleePosition = Vector3.zero;
-        bool canFlee = CanFlee(ref fleePosition);
+        bool canFlee = GetFleePosition(ref fleePosition);
 
-        if (NeedsHealing() && 
-            ShouldStop(navMeshAgent.destination) &&
-            !IsPlayerInRadius(AIStats.HealRadius))
+        if (HasArrived(navMeshAgent.destination))
         {
-            SetBool(TransitionKey.shouldHeal, true);
-        }
-        else if (canFlee && ShouldStop(navMeshAgent.destination))
-        {
-            navMeshAgent.SetDestination(fleePosition);
-        }
-        else if (IsPlayerInRadius(AIStats.HealRadius))
-        {
-            if (canFlee)
+            if (!IsPlayerInRadius(AIStats.HealRadius))
+            {
+                SetBool(TransitionKey.shouldHeal, true);
+            }
+            else if (canFlee)
             {
                 navMeshAgent.SetDestination(fleePosition);
             }
-            else
-            {
-                SetBool(TransitionKey.shouldPursue, true);
-            }
         }
-    }
-
-    /// <summary>
-    /// Determines whether there is a viable flee position. If viable flee position 
-    /// found, set it. Then seek viable cover positions and choose the one furthest 
-    /// from the player. If a viable cover position is not found/set then use original
-    /// flee position and check whether it is a valid path
-    /// </summary>
-    private bool CanFlee(ref Vector3 fleePosition)
-    {
-        bool canFlee = false;
-
-        if (IsPlayerInRadius(fleeRadius))
+        else if (!canFlee)
         {
-            Vector3 directionToPlayer =
-                AIStateData.AI.transform.position - AIStateData.player.transform.position;
-            fleePosition = AIStateData.AI.transform.position + directionToPlayer;
-
-            NavMeshHit navMeshHit;
-
-            bool fleeSpotFound = NavMesh.SamplePosition(
-                fleePosition, 
-                out navMeshHit,
-                fleeRadius, 
-                NavMesh.AllAreas);
-
-            if (fleeSpotFound)
-            {
-                fleePosition = navMeshHit.position;
-                canFlee = (SetBestCoverPosition(ref fleePosition) || 
-                    IsPlayerNearPathToDestination(fleePosition));
-            }
+            SetBool(TransitionKey.shouldPursue, true);
         }
-
-        return canFlee;
     }
 
     /// <summary>
     /// Given the flee position, find all colliders within coverSearchRadius. Parse 
     /// through the colliders and determine viable cover positions. Choose the 
-    /// cover position that is furthest from the player. If no cover positions 
-    /// are found, return default flee position
+    /// cover position that is furthest from the player and set it as the new
+    /// flee position. If no cover positions are found, verify that the path to
+    /// the referenced fleePosition has no players near it.
     /// </summary>
-    private bool SetBestCoverPosition(ref Vector3 fleePosition)
+    private bool GetFleePosition(ref Vector3 fleePosition)
+    {
+        bool fleePositionFound = false;
+
+        Vector3 directionToPlayer =
+            AIStateData.AI.transform.position - AIStateData.player.transform.position;
+        fleePosition = AIStateData.AI.transform.position + directionToPlayer;
+
+        NavMeshHit navMeshHit;
+
+        fleePositionFound = NavMesh.SamplePosition(
+            fleePosition,
+            out navMeshHit,
+            fleeRadius,
+            NavMesh.AllAreas);
+
+        if (fleePositionFound)
+        {
+            fleePosition = navMeshHit.position;
+            bool coverPositionFound = GetCoverPosition(ref fleePosition);
+
+            if (!coverPositionFound)
+            {
+                fleePositionFound = IsPlayerNearPathToDestination(fleePosition);
+            }
+        }
+
+        return fleePositionFound;
+    }
+
+    /// <summary>
+    /// Given the flee position, find all colliders within coverSearchRadius. Parse 
+    /// through the colliders and determine viable cover positions. Choose the 
+    /// cover position that is furthest from the player and set it as the new
+    /// flee position. If no cover positions are found, fleePosition remains 
+    /// unchanged
+    /// </summary>
+    private bool GetCoverPosition(ref Vector3 fleePosition)
     {
         bool coverPositionFound = false;
 
@@ -146,7 +141,8 @@ public class FleeState : AIState
         {
             Vector3 displacement =
                 AIStateData.player.transform.position - AIStateData.AI.transform.position;
-            possibleCoverPositions.Sort(SortByDistance);
+            possibleCoverPositions.Sort(SortByDistanceToPlayer);
+
             fleePosition = possibleCoverPositions[possibleCoverPositions.Count - 1];
             coverPositionFound = true;
         }
@@ -155,10 +151,10 @@ public class FleeState : AIState
     }
 
     /// <summary>
-    /// Given each collider, determine the nearest edge from North, West, and 
-    /// East of collider. If nearest edge found, then determine if a player is 
-    /// near the path to the edge and if it is a viable cover. If true the 
-    /// player is not near the path and it is viable cover, add it to the list
+    /// Given each collider, get sample positions around the collider and 
+    /// determine the nearest edge from each sample position. If an edge is found, 
+    /// then add it to the list if it is a viable cover position and if the path 
+    /// to that edge does not have a player near it
     /// </summary>
     private List<Vector3> PossibleCoverPositions(Collider[] hitColliders)
     {
@@ -171,15 +167,15 @@ public class FleeState : AIState
             Vector3 currentColliderPosition = hitColliders[i].transform.position;
             NavMeshHit hit;
 
-            for (var j = 0; j < sampleCoverPositions.Length; ++j)
+            for (var j = 1; j <= numOfSampleCoverPositions; ++j)
             {
-                Vector3 samplePosition = currentColliderPosition + sampleCoverPositions[j];
+                Vector3 samplePosition = GetSampleCoverPosition(currentColliderPosition, j);
 
-                bool nearestEdgeFound = 
+                bool nearestEdgeFound =
                     NavMesh.FindClosestEdge(samplePosition, out hit, NavMesh.AllAreas);
 
-                if (nearestEdgeFound && 
-                    IsViableCover(hit.normal, displacement) && 
+                if (nearestEdgeFound &&
+                    IsViableCover(hit.normal, displacement) &&
                     !IsPlayerNearPathToDestination(hit.position))
                 {
                     if (!possibleCoverPositions.Contains(hit.position))
@@ -194,7 +190,30 @@ public class FleeState : AIState
     }
 
     /// <summary>
-    /// Determine whether if the player is near the path to a certain destination.
+    /// Given the current sampleCoverPositionNum, calculate an angle and return
+    /// the point where the line (starting from center and extending to a length 
+    /// of sampleCoverPositionRange) should hit the circle
+    /// /// <summary>
+    private Vector3 GetSampleCoverPosition(Vector3 center, int sampleCoverPositionNum)
+    {
+        float angle = (360 / sampleCoverPositionNum);
+        Vector3 sampleCoverPosition;
+
+        sampleCoverPosition.x = 
+            center.x + sampleCoverPositionRange * Mathf.Sin(angle * Mathf.Deg2Rad);
+        sampleCoverPosition.y = center.y;
+        sampleCoverPosition.z = 
+            center.z + sampleCoverPositionRange * Mathf.Cos(angle * Mathf.Deg2Rad);
+
+        return sampleCoverPosition;
+    }
+
+    /// <summary>
+    /// Get the waypoints from the AI's current position to the destination. 
+    /// From the line extended from one waypoint to the next, calculate the nearest
+    /// point on said line to the player. If the playerAvoidanceRadius is greater
+    /// than the distance to that nearest point, then we can assume that the AI
+    /// will be near the player on the path from that waypoint to the next. 
     /// </summary>
     private bool IsPlayerNearPathToDestination(Vector3 destination)
     {
@@ -203,13 +222,21 @@ public class FleeState : AIState
         NavMeshPath path = new NavMeshPath();
         navMeshAgent.CalculatePath(destination, path);
 
-        for (var i = 0; i < path.corners.Length && !isPlayerNearPath; ++i)
+        for (var i = 0; i < (path.corners.Length - 1) && !isPlayerNearPath; ++i)
         {
-            float distanceToPlayer = Vector3.Distance(
-                path.corners[i],
+            Vector3 lineStart = path.corners[i];
+            Vector3 lineEnd = path.corners[i + 1];
+
+            Vector3 nearestPointFromPlayerToPathLine = NearestPointOnLine(
+                AIStateData.player.transform.position,
+                lineStart,
+                lineEnd);
+
+            float distanceToNearestPointFromPlayerToPathLine = Vector3.Distance(
+                nearestPointFromPlayerToPathLine,
                 AIStateData.player.transform.position);
 
-            if (distanceToPlayer <= playerAvoidanceRadius)
+            if (playerAvoidanceRadius >= distanceToNearestPointFromPlayerToPathLine)
             {
                 isPlayerNearPath = true;
             }
@@ -219,17 +246,37 @@ public class FleeState : AIState
     }
 
     /// <summary>
-    /// Determine whether the normal of the vector is pointing away from the player.
-    /// If pointing away from the enemy, it is viable cover
+    /// Perform a projection from a vector A (lineStart to point) onto a vector B 
+    /// (lineStart to lineEnd). Because the line is finite, clamp the dot product
     /// </summary>
-    private bool IsViableCover(Vector3 normal, Vector3 displacement)
+    private static Vector3 NearestPointOnLine(
+        Vector3 point, 
+        Vector3 lineStart, 
+        Vector3 lineEnd)
     {
-        return (Vector3.Dot(normal, displacement) < AIStateData.AIStats.CoverQuality);
+        Vector3 line = lineEnd - lineStart;
+        float lineLength = line.magnitude;
+        line.Normalize();
+
+        Vector3 projection = point - lineStart;
+        float dot = Vector3.Dot(line, projection);
+        dot = Mathf.Clamp(dot, 0f, lineLength);
+
+        return (lineStart + (line * dot));
     }
 
     /// <summary>
-    /// Determine whether the AI needs to heal. If health is in the critical zone,
-    /// heal
+    /// Determines whether the vectors are pointing in somewhat opposite directions.
+    /// If the dot product returns -1, then they are pointing in completely
+    /// opposite directions.
+    /// </summary>
+    private bool IsViableCover(Vector3 normal, Vector3 displacement)
+    {
+        return (Vector3.Dot(normal, displacement) <= AIStateData.AIStats.CoverQuality);
+    }
+
+    /// <summary>
+    /// Determines whether the AI's health is in the critical zone
     /// </summary>
     private bool NeedsHealing()
     {
@@ -243,7 +290,10 @@ public class FleeState : AIState
         return needsHealing;
     }
 
-    private int SortByDistance(Vector3 a, Vector3 b)
+    /// <summary>
+    /// Sorts a position based off its distance to the player
+    /// </summary>
+    private int SortByDistanceToPlayer(Vector3 a, Vector3 b)
     {
         float distanceToA = Vector3.Distance(
             a,

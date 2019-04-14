@@ -12,7 +12,8 @@ public class StunnedState : AIState
     }
 
     /// <summary>
-    /// Stop navMeshAgent and reset stunnedTimer
+    /// Stop navMeshAgent and reset stunnedTimer. Make sure kinematic is disabled
+    /// to ensure missle knockback
     /// </summary>
     public override void OnEnter()
     {
@@ -23,6 +24,9 @@ public class StunnedState : AIState
         stunnedTimer = 0f;
     }
 
+    /// <summary>
+    /// Enable kinematic
+    /// </summary>
     public override void OnExit()
     {
         AIRigidbody.isKinematic = true;
@@ -34,7 +38,7 @@ public class StunnedState : AIState
     }
 
     /// <summary>
-    /// Temporarily disable the AI for X duration. Reset rigidbody physics
+    /// Temporarily disable the AI for X duration then reset rigidbody physics
     /// so the NavMeshAgent can properly operate
     /// </summary>
     private void Stunned()

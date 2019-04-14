@@ -1,19 +1,27 @@
 ﻿using UnityEngine;
+using UnityEngine.AI;
 
 public class ShellExplosion : MonoBehaviour
 {
-    [SerializeField] LayerMask tankMask;
-    [SerializeField] ParticleSystem explosionParticles;
-    [SerializeField] AudioSource explosionAudio;          
+    [SerializeField] private LayerMask tankMask;
+    [SerializeField] private ParticleSystem explosionParticles;
+    [SerializeField] private AudioSource explosionAudio;
     
     private float maxDamage = 100f;
     private float explosionForce = 1000f;
     private float maxLifeTime = 2f;
-    private float explosionRadius = 5f;              
+    private float explosionRadius = 5f;
+
+    float time = 0;
 
     private void Start()
     {
         Destroy(gameObject, maxLifeTime);
+    }
+
+    private void Update()
+    {
+        time += Time.deltaTime;
     }
 
     // Find all the tanks in an area around the shell and damage them.

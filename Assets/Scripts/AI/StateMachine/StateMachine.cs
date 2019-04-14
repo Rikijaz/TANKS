@@ -230,6 +230,8 @@ namespace BGC.StateMachine
                 states[activeState].OnExit();
                 states[CurrentState].OnEnter();
 
+                Debug.Log(CurrentState);
+
                 // run transition again if we have transitioned so we can continue
                 // through the statem achine until we reach a point to wait again
                 Transition();

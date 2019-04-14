@@ -10,7 +10,7 @@ public class HealState : AIState
     }
 
     /// <summary>
-    /// Start navMeshAgent
+    /// Start navMeshAgent and reset rigidbody physics
     /// </summary>
     public override void OnEnter()
     {
@@ -25,11 +25,12 @@ public class HealState : AIState
     }
 
     /// <summary>
-    /// If hit by missle, enter stunned state. Else, heal
+    /// If the AI is hit by missle, enter stunned state. If there are missles to be 
+    /// dodged, then enter dodge state. Else, heal.
     /// </summary>
     public override void Update()
     {
-        if (!IsHit() )
+        if (!IsHit() && !ShouldDodge())
         {
             Heal();
         }
