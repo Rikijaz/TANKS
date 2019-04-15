@@ -2,7 +2,7 @@
 
 public class PursueState : AIState
 {
-    protected override string DefaultName { get { return "PursueState"; } }
+    protected override string DefaultName => "PursueState";
 
     public PursueState(AIStateData AIStateData) : base(AIStateData)
     {

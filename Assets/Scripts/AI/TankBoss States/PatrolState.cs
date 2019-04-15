@@ -2,7 +2,7 @@
 
 public class PatrolState : AIState
 {
-    protected override string DefaultName { get { return "PatrolState"; } }
+    protected override string DefaultName => "PatrolState";
 
     private Transform[] patrolPoints;
     private int currentPatrolPoint;
@@ -53,8 +53,9 @@ public class PatrolState : AIState
     }
 
     /// <summary>
-    /// If the AI has arrived at the current waypoint, set the next one and 
-    /// enter scan state. Else, continue to the current waypoint
+    /// If the AI has arrived at the current waypoint, increment the currentPatrolPoint
+    /// to set the next waypoint and enter scan state. Else, continue to the current 
+    /// waypoint
     /// </summary>
     private void Patrol()
     {

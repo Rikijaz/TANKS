@@ -2,7 +2,7 @@
 
 public class StunnedState : AIState
 {
-    protected override string DefaultName { get { return "StunnedState"; } }
+    protected override string DefaultName => "StunnedState";
 
     private float stunnedTimer;
 
@@ -32,16 +32,12 @@ public class StunnedState : AIState
         AIRigidbody.isKinematic = true;
     }
 
-    public override void Update()
-    {
-        Stunned();
-    }
-
     /// <summary>
     /// Temporarily disable the AI for X duration then reset rigidbody physics
-    /// so the NavMeshAgent can properly operate
+    /// so the NavMeshAgent can properly operate. If the AI's health is in the
+    /// critical zone, then enter flee state. Else, enter pursue state
     /// </summary>
-    private void Stunned()
+    public override void Update()
     {
         stunnedTimer += Time.deltaTime;
 
@@ -49,7 +45,7 @@ public class StunnedState : AIState
         {
             ResetRigidBodyPhysics();
 
-            if (AIHealth.CachedHealth < AIStateData.AIStats.CriticalHealth)
+            if (NeedsHealing())
             {
                 SetBool(TransitionKey.shouldFlee, true);
             }

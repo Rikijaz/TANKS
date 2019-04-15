@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class DodgeState : AIState
 {
-    protected override string DefaultName { get { return "DodgeState"; } }
+    protected override string DefaultName => "DodgeState";
 
     public DodgeState(AIStateData AIStateData) : base(AIStateData)
     {
@@ -34,12 +34,9 @@ public class DodgeState : AIState
     /// </summary>
     public override void Update()
     {
-        if (!IsHit())
+        if (!IsHit() && !Dodge())
         {
-            if (!Dodge())
-            {
-                SetBool(TransitionKey.shouldPursue, true);
-            }
+            SetBool(TransitionKey.shouldPursue, true);
         }
     }
 
@@ -86,8 +83,7 @@ public class DodgeState : AIState
 
             if (AIStateData.AIStats.MissleAvoidanceRadius >= distanceToMissleDestination)
             {
-                Vector3 displacement = 
-                    missleDestination - AIStateData.AI.transform.position;
+                Vector3 displacement = missleDestination - AIStateData.AI.transform.position;
                 direction += displacement;
                 numOfProjectiles++;
             }

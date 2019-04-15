@@ -20,17 +20,19 @@ public class TankShooting : MonoBehaviour
             lifeSpan -= Time.deltaTime;
         }
     }
+        
+    [SerializeField] private Rigidbody shell;
+    [SerializeField] private Transform fireTransform;
+    [SerializeField] private Slider aimSlider;
+    [SerializeField] private AudioSource shootingAudio;
+    [SerializeField] private AudioClip chargingClip;
+    [SerializeField] private AudioClip fireClip;
+    [SerializeField] private float minLaunchForce = 15f;
+    [SerializeField] private float maxLaunchForce = 30f;
+    [SerializeField] private float maxChargeTime = 0.75f;
 
-    public int playerNumber = 1;       
-    public Rigidbody shell;            
-    public Transform fireTransform;    
-    public Slider aimSlider;           
-    public AudioSource shootingAudio;  
-    public AudioClip chargingClip;     
-    public AudioClip fireClip;         
-    public float minLaunchForce = 15f; 
-    public float maxLaunchForce = 30f; 
-    public float maxChargeTime = 0.75f;
+    public int playerNumber = 1;
+
     public float currentLaunchForce { get; private set; }
     public List<MissleData> missleDataCache { get; private set; }
 

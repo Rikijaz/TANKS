@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Assertions;
 
 public abstract class AIState : BGC.StateMachine.State
 {
     protected AIStateData AIStateData;
     protected NavMeshAgent navMeshAgent;
-    protected TankHealth AIHealth;
     protected Rigidbody AIRigidbody;
     protected TankShooting AIShooting;
     protected TankShooting playerShooting;
@@ -16,10 +16,14 @@ public abstract class AIState : BGC.StateMachine.State
         navMeshAgent = AIStateData.AI.GetComponent<NavMeshAgent>();
         navMeshAgent.speed = AIStateData.AIStats.Speed;
         navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;
-        AIHealth = AIStateData.AI.GetComponent<TankHealth>();
         AIRigidbody = AIStateData.AI.GetComponent<Rigidbody>();
         AIShooting = AIStateData.AI.GetComponent<TankShooting>();
         playerShooting = AIStateData.player.GetComponent<TankShooting>();
+
+        Assert.IsNotNull(navMeshAgent);
+        Assert.IsNotNull(AIShooting);
+        Assert.IsNotNull(AIRigidbody);
+        Assert.IsNotNull(playerShooting);
     }
 
     /// <summary>
@@ -27,18 +31,14 @@ public abstract class AIState : BGC.StateMachine.State
     /// </summary>
     protected bool IsPlayerInSight()
     {
-        bool playerSpotted = false;
-
         RaycastHit playerHit;
 
-        playerSpotted = (Physics.Raycast(
+        return Physics.Raycast(
             AIStateData.AI.transform.position,
             AIStateData.AI.transform.TransformDirection(Vector3.forward),
             out playerHit,
             AIStateData.AIStats.SightRange,
-            AIStateData.playerLayerMask));
-
-        return playerSpotted;
+            AIStateData.playerLayerMask);
     }
 
     /// <summary>
@@ -49,11 +49,11 @@ public abstract class AIState : BGC.StateMachine.State
     {
         bool isHit = false;
 
-        if (AIHealth.CurrentHealth < AIHealth.CachedHealth)
+        if (AIStateData.AIHealth.CurrentHealth < AIStateData.AIHealth.CachedHealth)
         {
             SetBool(TransitionKey.shouldBeStunned, true);
 
-            AIHealth.CachedHealth = AIHealth.CurrentHealth;
+            AIStateData.AIHealth.CachedHealth = AIStateData.AIHealth.CurrentHealth;
             isHit = true;
         }
 
@@ -68,7 +68,7 @@ public abstract class AIState : BGC.StateMachine.State
     {
         bool missleInRadius = false;
 
-        for (var i = 0; i < playerShooting.missleDataCache.Count && !missleInRadius; ++i)
+        for (var i = 0; i < playerShooting.missleDataCache.Count; ++i)
         {
             float distanceToMissleDestination = Vector3.Distance(
                 AIStateData.AI.transform.position,
@@ -79,6 +79,7 @@ public abstract class AIState : BGC.StateMachine.State
                 SetBool(TransitionKey.shouldDodge, true);
 
                 missleInRadius = true;
+                break;
             }
         }
 
@@ -105,7 +106,7 @@ public abstract class AIState : BGC.StateMachine.State
 
     protected bool IsPlayerInRadius(float radius)
     {
-        return (DistanceToPlayer() <= radius);
+        return DistanceToPlayer() <= radius;
     }
 
     /// <summary>
@@ -118,6 +119,12 @@ public abstract class AIState : BGC.StateMachine.State
             destination, 
             AIStateData.AI.transform.position);
 
-        return (distanceToDestination <= navMeshAgent.stoppingDistance);
+        return distanceToDestination <= navMeshAgent.stoppingDistance;
     }
+
+    /// <summary>
+    /// Determines whether the AI's health is in the critical zone
+    /// </summary>
+    protected bool NeedsHealing() =>
+        AIStateData.AIHealth.CurrentHealth < AIStateData.AIStats.CriticalHealth;
 }

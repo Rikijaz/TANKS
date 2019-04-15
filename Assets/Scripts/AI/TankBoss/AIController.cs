@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Assertions;
 
 public struct AIStateData
 {
@@ -6,24 +7,28 @@ public struct AIStateData
     public GameObject player;
     public LayerMask playerLayerMask;
     public AIStats AIStats;
+    public TankHealth AIHealth;
+
     public AIStateData(
         GameObject AI,
         GameObject player,
         LayerMask playerLayerMask,
-        AIStats AIStats)
+        AIStats AIStats,
+        TankHealth AIHealth)
     {
         this.AI = AI;
         this.player = player;
         this.playerLayerMask = playerLayerMask;
         this.AIStats = AIStats;
+        this.AIHealth = AIHealth;
     }
 }
 
 public class AIController : MonoBehaviour
 {
     [Header("AI State Data")]
-    [SerializeField] Transform[] patrolPoints;
-    [SerializeField] LayerMask playerLayerMask;
+    [SerializeField] private Transform[] patrolPoints;
+    [SerializeField] private LayerMask playerLayerMask;
 
     private AIStateData AIStateData;
 
@@ -36,6 +41,7 @@ public class AIController : MonoBehaviour
     private void Awake()
     {
         AIRigidbody = GetComponent<Rigidbody>();
+        Assert.IsNotNull(AIRigidbody);
 
         stateMachine = new BGC.StateMachine.StateMachine();
 
@@ -102,7 +108,6 @@ public class AIController : MonoBehaviour
             stateMachine.GetBool,
             stateMachine.SetBool);
 
-        
         stateMachine.AddEntryState(entryState);
         stateMachine.AddState(patrolState);
         stateMachine.AddState(scanState);
@@ -184,7 +189,8 @@ public class AIController : MonoBehaviour
             gameObject,
             player,
             playerLayerMask,
-            AIStats);
+            AIStats,
+            GetComponent<TankHealth>());
     }
 
     /// <summary>

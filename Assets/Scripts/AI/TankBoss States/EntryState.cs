@@ -2,11 +2,11 @@
 
 public class EntryState : AIState
 {
-    protected override string DefaultName { get { return "EntryState"; } }
+    protected override string DefaultName => "EntryState";
 
     public EntryState(AIStateData AIStateData) : base(AIStateData)
     {
-        SetStats();
+        // empty
     }
 
     public override void OnEnter()
@@ -20,25 +20,18 @@ public class EntryState : AIState
     }
 
     /// <summary>
-    /// Set AI stats accordingly
-    /// </summary>
-    public override void Update()
-    {
-        SetStats();
-        SetBool(TransitionKey.shouldPatrol, true);
-    }
-
-    /// <summary>
     /// Should be called before every match. If the player has won the previous 
     /// match, then the stats will be updated to the new ones. Else, the stats
     /// remains the same.
     /// </summary>
-    public void SetStats()
+    public override void Update()
     {
-        AIHealth.CachedHealth = AIHealth.StartingHealth;
-        AIHealth.StartingHealth = AIStateData.AIStats.Health;
-        
+        AIStateData.AIHealth.CachedHealth = AIStateData.AIHealth.StartingHealth;
+        AIStateData.AIHealth.StartingHealth = AIStateData.AIStats.Health;
+
         navMeshAgent.speed = AIStateData.AIStats.Speed;
         navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;
+
+        SetBool(TransitionKey.shouldPatrol, true);
     }
 }

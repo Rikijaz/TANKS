@@ -4,7 +4,7 @@ using UnityEngine.AI;
 
 public class FleeState : AIState
 {
-    protected override string DefaultName { get { return "FleeState"; } }
+    protected override string DefaultName => "FleeState";
 
     private const float fleeRadius = 40f;
     private const float fleeSearchRange = 14f;
@@ -217,12 +217,10 @@ public class FleeState : AIState
     /// </summary>
     private bool IsPlayerNearPathToDestination(Vector3 destination)
     {
-        bool isPlayerNearPath = false;
-
         NavMeshPath path = new NavMeshPath();
         navMeshAgent.CalculatePath(destination, path);
 
-        for (var i = 0; i < (path.corners.Length - 1) && !isPlayerNearPath; ++i)
+        for (var i = 0; i < (path.corners.Length - 1); ++i)
         {
             Vector3 lineStart = path.corners[i];
             Vector3 lineEnd = path.corners[i + 1];
@@ -238,11 +236,11 @@ public class FleeState : AIState
 
             if (playerAvoidanceRadius >= distanceToNearestPointFromPlayerToPathLine)
             {
-                isPlayerNearPath = true;
+                return true;
             }
         }
 
-        return isPlayerNearPath;
+        return false;
     }
 
     /// <summary>
@@ -262,7 +260,7 @@ public class FleeState : AIState
         float dot = Vector3.Dot(line, projection);
         dot = Mathf.Clamp(dot, 0f, lineLength);
 
-        return (lineStart + (line * dot));
+        return lineStart + (line * dot);
     }
 
     /// <summary>
@@ -272,22 +270,7 @@ public class FleeState : AIState
     /// </summary>
     private bool IsViableCover(Vector3 normal, Vector3 displacement)
     {
-        return (Vector3.Dot(normal, displacement) <= AIStateData.AIStats.CoverQuality);
-    }
-
-    /// <summary>
-    /// Determines whether the AI's health is in the critical zone
-    /// </summary>
-    private bool NeedsHealing()
-    {
-        bool needsHealing = false;
-
-        if (AIHealth.CurrentHealth < AIStateData.AIStats.CriticalHealth)
-        {
-            needsHealing = true;
-        }
-
-        return needsHealing;
+        return Vector3.Dot(normal, displacement) <= AIStateData.AIStats.CoverQuality;
     }
 
     /// <summary>

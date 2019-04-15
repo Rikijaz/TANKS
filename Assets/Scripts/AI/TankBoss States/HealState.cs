@@ -2,7 +2,7 @@
 
 public class HealState : AIState
 {
-    protected override string DefaultName { get { return "HealState"; } }
+    protected override string DefaultName => "HealState";
 
     public HealState(AIStateData AIStateData) : base(AIStateData)
     {
@@ -42,7 +42,7 @@ public class HealState : AIState
     /// </summary>
     private void Heal()
     {
-        if (AIHealth.CurrentHealth < AIStateData.AIStats.Health)
+        if (AIStateData.AIHealth.CurrentHealth < AIStateData.AIStats.Health)
         {
             if (IsPlayerInRadius(AIStats.HealRadius))
             {
@@ -51,7 +51,7 @@ public class HealState : AIState
             else
             {
                 float healAmount = AIStateData.AIStats.HealthRegeneration * Time.deltaTime;
-                AIHealth.Heal(healAmount);
+                AIStateData.AIHealth.Heal(healAmount);
             } 
         }
         else

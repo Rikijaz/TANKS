@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.Assertions;
 
 public class AttackState : AIState
 {
-    protected override string DefaultName { get { return "AttackState"; } }
+    protected override string DefaultName => "AttackState";
 
     private TankMovement playerMovement;
 
-    private bool isCooledDown;
-    private bool isPreparedToFire;
-    private bool isMissleCharged;
-    private bool hasFired; 
+    private bool isCooledDown = false;
+    private bool isPreparedToFire = false;
+    private bool isMissleCharged = false;
+    private bool hasFired = false;
     private float missleCooldownTimer;
 
     private static readonly Vector3 missleLocalPosition = new Vector3(0f, 1.7f, 1.35f);
@@ -19,11 +20,8 @@ public class AttackState : AIState
     public AttackState(AIStateData AIStateData) : base(AIStateData)
     { 
         playerMovement = AIStateData.player.GetComponent<TankMovement>();
+        Assert.IsNotNull(playerMovement);
 
-        isCooledDown = false;
-        isPreparedToFire = false;
-        isMissleCharged = false;
-        hasFired = false;
         missleCooldownTimer = AIStateData.AIStats.MissleCooldownDuration;
     }
 
@@ -182,7 +180,7 @@ public class AttackState : AIState
         float sinReciprocalA = Mathf.Sin(angleA) / sideA;
         float cosReciprocalA = Mathf.Cos(angleA) / sideB;
 
-        if ((sideB != 0 || sideB <= sideA) || (sinReciprocalA <= cosReciprocalA))
+        if (sideB != 0 || sideB <= sideA || sinReciprocalA <= cosReciprocalA)
         {
             float angleB = Mathf.Asin(Mathf.Sin(angleA) * sideB / sideA);
             float angleC = Mathf.Sin(Mathf.PI - angleA - angleB);

@@ -2,7 +2,7 @@
 
 public class ScanState : AIState
 {
-    protected override string DefaultName { get { return "ScanState"; } }
+    protected override string DefaultName => "ScanState";
 
     private float degreesRotated;
     private float degreeToRotate;
@@ -86,11 +86,11 @@ public class ScanState : AIState
 
         if (degreeToRotate >= 0)
         {
-            hasTurned = (degreesRotated >= degreeToRotate);
+            hasTurned = degreesRotated >= degreeToRotate;
         }
         else
         {
-            hasTurned = (degreesRotated <= degreeToRotate);
+            hasTurned = degreesRotated <= degreeToRotate;
         }
 
         if (!hasTurned)
