@@ -162,12 +162,12 @@ public class FleeState : AIState
         Vector3 displacement = 
             AIStateData.player.transform.position - AIStateData.AI.transform.position;
 
-        for (var i = 0; i < hitColliders.Length; ++i)
+        for (int i = 0; i < hitColliders.Length; ++i)
         {
             Vector3 currentColliderPosition = hitColliders[i].transform.position;
             NavMeshHit hit;
 
-            for (var j = 1; j <= numOfSampleCoverPositions; ++j)
+            for (int j = 1; j <= numOfSampleCoverPositions; ++j)
             {
                 Vector3 samplePosition = GetSampleCoverPosition(currentColliderPosition, j);
 
@@ -220,7 +220,7 @@ public class FleeState : AIState
         NavMeshPath path = new NavMeshPath();
         navMeshAgent.CalculatePath(destination, path);
 
-        for (var i = 0; i < (path.corners.Length - 1); ++i)
+        for (int i = 0; i < (path.corners.Length - 1); ++i)
         {
             Vector3 lineStart = path.corners[i];
             Vector3 lineEnd = path.corners[i + 1];

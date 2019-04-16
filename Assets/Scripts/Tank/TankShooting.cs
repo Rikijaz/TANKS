@@ -135,7 +135,7 @@ public class TankShooting : MonoBehaviour
     /// </summary>
     private void UpdateMissleDataCache()
     {
-        for (var i = 0; i < missleDataCache.Count; ++i)
+        for (int i = 0; i < missleDataCache.Count; ++i)
         {
             missleDataCache[i].UpdateLifeSpan();
 

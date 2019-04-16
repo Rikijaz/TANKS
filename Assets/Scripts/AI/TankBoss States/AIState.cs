@@ -14,8 +14,6 @@ public abstract class AIState : BGC.StateMachine.State
     {
         this.AIStateData = AIStateData;
         navMeshAgent = AIStateData.AI.GetComponent<NavMeshAgent>();
-        navMeshAgent.speed = AIStateData.AIStats.Speed;
-        navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;
         AIRigidbody = AIStateData.AI.GetComponent<Rigidbody>();
         AIShooting = AIStateData.AI.GetComponent<TankShooting>();
         playerShooting = AIStateData.player.GetComponent<TankShooting>();
@@ -24,6 +22,9 @@ public abstract class AIState : BGC.StateMachine.State
         Assert.IsNotNull(AIShooting);
         Assert.IsNotNull(AIRigidbody);
         Assert.IsNotNull(playerShooting);
+
+        navMeshAgent.speed = AIStateData.AIStats.Speed;
+        navMeshAgent.angularSpeed = AIStateData.AIStats.TurnSpeed;
     }
 
     /// <summary>
@@ -68,7 +69,7 @@ public abstract class AIState : BGC.StateMachine.State
     {
         bool missleInRadius = false;
 
-        for (var i = 0; i < playerShooting.missleDataCache.Count; ++i)
+        for (int i = 0; i < playerShooting.missleDataCache.Count; ++i)
         {
             float distanceToMissleDestination = Vector3.Distance(
                 AIStateData.AI.transform.position,
@@ -97,16 +98,15 @@ public abstract class AIState : BGC.StateMachine.State
         AIRigidbody.angularVelocity = Vector3.zero;
     }
 
-    protected float DistanceToPlayer()
-    {
-        return Vector3.Distance(
-            AIStateData.player.transform.position,
-            AIStateData.AI.transform.position);
-    }
-
+    /// <summary>
+    /// Determines if the player is in a specified radius of the AI
+    /// </summary>
     protected bool IsPlayerInRadius(float radius)
     {
-        return DistanceToPlayer() <= radius;
+        float distanceToPlayer = Vector3.Distance(
+            AIStateData.player.transform.position,
+            AIStateData.AI.transform.position);
+        return distanceToPlayer <= radius;
     }
 
     /// <summary>
