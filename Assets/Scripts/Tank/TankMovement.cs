@@ -9,7 +9,7 @@ public class TankMovement : MonoBehaviour
     public AudioClip engineIdling;
     public AudioClip engineDriving;
     public float pitchRange = 0.2f;
-
+    public Vector3 Velocity { get; private set; }
 
     private string movementAxisName;
     private string turnAxisName;
@@ -108,9 +108,10 @@ public class TankMovement : MonoBehaviour
     // Adjust the position of the tank based on the player's input.
     private void Move()
     {
-        Vector3 movement = transform.forward * movementInputValue * speed * 
+        Velocity = transform.forward * movementInputValue * speed * 
             Time.deltaTime;
-        rigidbody.MovePosition(rigidbody.position + movement);
+
+        rigidbody.MovePosition(rigidbody.position + Velocity);
     }
 
     // Adjust the rotation of the tank based on the player's input.

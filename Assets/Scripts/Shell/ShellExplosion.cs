@@ -1,18 +1,27 @@
 ﻿using UnityEngine;
+using UnityEngine.AI;
 
 public class ShellExplosion : MonoBehaviour
 {
-    public LayerMask tankMask;
-    public ParticleSystem explosionParticles;       
-    public AudioSource explosionAudio;              
-    public float maxDamage = 100f;                  
-    public float explosionForce = 1000f;            
-    public float maxLifeTime = 2f;                  
-    public float explosionRadius = 5f;              
+    [SerializeField] private LayerMask tankMask;
+    [SerializeField] private ParticleSystem explosionParticles;
+    [SerializeField] private AudioSource explosionAudio;
+    
+    private float maxDamage = 100f;
+    private float explosionForce = 1000f;
+    private float maxLifeTime = 2f;
+    private float explosionRadius = 5f;
+
+    float time = 0;
 
     private void Start()
     {
         Destroy(gameObject, maxLifeTime);
+    }
+
+    private void Update()
+    {
+        time += Time.deltaTime;
     }
 
     // Find all the tanks in an area around the shell and damage them.
@@ -29,6 +38,8 @@ public class ShellExplosion : MonoBehaviour
 
             if (targetRigidbody)
             {
+                targetRigidbody.isKinematic = false;
+
                 targetRigidbody.AddExplosionForce(
                     explosionForce, 
                     transform.position, 
@@ -42,17 +53,17 @@ public class ShellExplosion : MonoBehaviour
                     float damage = CalculateDamage(targetRigidbody.position);
                     targetHealth.TakeDamage(damage);
                 }
-
-                explosionParticles.transform.parent = null;
-                explosionParticles.Play();
-                explosionAudio.Play();
-
-                Destroy(
-                    explosionParticles.gameObject, 
-                    explosionParticles.main.duration);
-                Destroy(gameObject);
             }
         }
+
+        explosionParticles.transform.parent = null;
+        explosionParticles.Play();
+        explosionAudio.Play();
+
+        Destroy(
+            explosionParticles.gameObject,
+            explosionParticles.main.duration);
+            Destroy(gameObject);
     }
 
     // Calculate the amount of damage a target should take based on it's position.
